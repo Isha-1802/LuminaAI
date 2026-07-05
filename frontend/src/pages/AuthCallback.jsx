@@ -13,20 +13,30 @@ export default function AuthCallback() {
     if (hasProcessed.current) return;
     hasProcessed.current = true;
 
-    const hash = window.location.hash || "";
-    const match = hash.match(/session_id=([^&]+)/);
-    if (!match) {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    
+    if (!token) {
       nav("/auth?mode=login", { replace: true });
       return;
     }
-    const sessionId = match[1];
 
     (async () => {
       try {
-        const { data } = await api.post("/auth/google/session", { session_id: sessionId });
-        setUser(data.user);
+        const { data } = await api.post("/auth/google/session", { session_id: token });
+        let currentUser = data.user;
+        
+        // Check if there is a pending role selection from Google Auth
+        const pendingRole = localStorage.getItem("pending_role");
+        if (pendingRole) {
+          const roleRes = await api.patch("/auth/me/role", { role: pendingRole });
+          currentUser = roleRes.data;
+          localStorage.removeItem("pending_role");
+        }
+        
+        setUser(currentUser);
         window.history.replaceState(null, "", window.location.pathname);
-        nav("/dashboard", { replace: true, state: { user: data.user } });
+        nav("/", { replace: true, state: { user: currentUser } });
       } catch (e) {
         console.error("Google session exchange failed", e);
         nav("/auth?mode=login&error=google", { replace: true });

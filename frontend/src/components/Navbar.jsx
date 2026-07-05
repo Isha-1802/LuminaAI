@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, Search, User } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -25,41 +26,60 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-10 overline">
-          {onLanding && (
-            <>
-              <a href="#features" className="hover:text-[#f2ece0] transition-colors" data-testid="nav-features">The Method</a>
-              <a href="#how" className="hover:text-[#f2ece0] transition-colors" data-testid="nav-how">Choreography</a>
-              <a href="#pricing" className="hover:text-[#f2ece0] transition-colors" data-testid="nav-pricing">Atelier</a>
-            </>
-          )}
-        </nav>
+
 
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              {user.role === "interviewer" && (
+              {(user.role === "candidate" || user.role === "interviewee") && (
+                <button
+                  onClick={() => nav("/experts")}
+                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors"
+                  data-testid="nav-experts-btn"
+                >
+                  <Search size={12} /> Find Interviewers
+                </button>
+              )}
+              {user.role === "interviewer" ? (
                 <button
                   onClick={() => nav("/console")}
                   className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors"
                   data-testid="nav-console-btn"
                 >
-                  <LayoutDashboard size={12} /> Console
+                  <LayoutDashboard size={12} /> Interviewer Console
+                </button>
+              ) : (
+                <button
+                  onClick={() => nav("/dashboard")}
+                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#f2ece0] transition-colors"
+                  data-testid="nav-dashboard-btn"
+                >
+                  <LayoutDashboard size={12} /> Dashboard
                 </button>
               )}
               <button
-                onClick={() => nav("/dashboard")}
+                onClick={() => nav("/profile")}
                 className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#f2ece0] transition-colors"
-                data-testid="nav-dashboard-btn"
+                data-testid="nav-profile-btn"
               >
-                <LayoutDashboard size={12} /> Salon
+                {user.picture ? (
+                  <img 
+                    src={user.picture.startsWith("http") ? user.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${user.picture}`} 
+                    alt="Profile" 
+                    className="w-5 h-5 rounded-full object-cover border border-[#c9a96e]/30" 
+                  />
+                ) : (
+                  <User size={12} /> 
+                )}
+                Profile
               </button>
+              <NotificationBell />
               <button
                 onClick={async () => { await logout(); nav("/"); }}
                 className="group relative inline-flex items-center gap-2 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#f2ece0] border border-[#f2ece0]/15 hover:border-[#c9a96e]/60 transition-all"
                 data-testid="nav-logout-btn"
               >
-                <LogOut size={11} /> Depart
+                <LogOut size={11} /> Logout
               </button>
             </>
           ) : (
@@ -68,7 +88,7 @@ export default function Navbar() {
                 className="group relative inline-flex items-center gap-2 px-6 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#0c0a09] bg-[#f2ece0] hover:bg-[#c9a96e] transition-all"
                 data-testid="nav-signup-btn"
               >
-                Enter the Atelier
+                Login / Sign Up
               </Link>
           )}
         </div>

@@ -160,7 +160,7 @@ export default function Landing() {
                     onMouseLeave={() => setCursorActive(false)}
                   >
                     <Play size={11} className="fill-[#0c0a09]" />
-                    Begin the Rehearsal
+                    Login / Sign Up
                     <ArrowUpRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500" />
                   </Link>
                 </MagneticButton>
@@ -635,12 +635,12 @@ export default function Landing() {
                   onMouseEnter={() => setCursorActive(true)}
                   onMouseLeave={() => setCursorActive(false)}
                 >
-                  <span className="text-[11px] uppercase tracking-[0.32em] font-medium">Request Invitation</span>
+                  <span className="text-[11px] uppercase tracking-[0.32em] font-medium">Sign Up</span>
                   <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </MagneticButton>
               <Link to="/auth?mode=login" className="overline hover:text-[#c9a96e] transition-colors" data-testid="cta-login-link">
-                Already invited? Enter →
+                Already have an account? Login →
               </Link>
             </div>
           </motion.div>

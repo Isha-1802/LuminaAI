@@ -1,16 +1,31 @@
 """Authentication routes."""
 import uuid
-import requests
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request, Response
+from fastapi.responses import RedirectResponse
+from authlib.integrations.starlette_client import OAuth, OAuthError
 
 from core import (
     db, find_user, get_current_user, hash_password, verify_password,
-    create_jwt, now_iso, SESSION_EXP_DAYS, EMERGENT_AUTH_SESSION_URL,
-    RegisterInput, LoginInput, GoogleSessionInput,
+    create_jwt, now_iso, SESSION_EXP_DAYS,
+    RegisterInput, LoginInput,
+    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# --- Setup Google OAuth ---
+oauth = OAuth()
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    oauth.register(
+        name='google',
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
 
 
 @router.post("/register")
@@ -46,33 +61,59 @@ async def login(payload: LoginInput):
     return {"token": token, "user": user_out}
 
 
-@router.post("/google/session")
-async def google_session(payload: GoogleSessionInput, response: Response):
-    resp = requests.get(EMERGENT_AUTH_SESSION_URL, headers={"X-Session-ID": payload.session_id}, timeout=15)
-    if resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid session")
-    data = resp.json()
-    email = data["email"].lower()
+@router.get("/google")
+async def google_login(request: Request):
+    """Initiates the Google OAuth flow."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    # Redirect URI must match what's in Google Cloud Console
+    redirect_uri = str(request.base_url).rstrip("/") + "/api/auth/google/callback"
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/google/callback")
+async def google_callback(request: Request, response: Response):
+    """Handles the callback from Google and logs the user in."""
+    try:
+        token_data = await oauth.google.authorize_access_token(request)
+        user_info = token_data.get('userinfo')
+        if not user_info:
+            raise OAuthError("No user info returned from Google")
+    except OAuthError as e:
+        return RedirectResponse(url=f"{FRONTEND_URL}/auth?mode=login&error=google")
+
+    email = user_info["email"].lower()
+    
+    # Check if user exists
     existing = await db.users.find_one({"email": email})
     if existing:
         user_id = existing["user_id"]
         await db.users.update_one(
             {"user_id": user_id},
-            {"$set": {"name": data.get("name", existing["name"]), "picture": data.get("picture"), "provider": "google"}},
+            {"$set": {
+                "name": user_info.get("name", existing["name"]), 
+                "picture": user_info.get("picture"), 
+                "provider": "google"
+            }},
         )
     else:
         user_id = f"user_{uuid.uuid4().hex[:12]}"
         await db.users.insert_one({
             "user_id": user_id,
             "email": email,
-            "name": data.get("name", email.split("@")[0]),
-            "picture": data.get("picture"),
+            "name": user_info.get("name", email.split("@")[0]),
+            "picture": user_info.get("picture"),
             "role": "interviewee",
             "provider": "google",
             "hashed_password": None,
             "created_at": now_iso(),
         })
-    session_token = data["session_token"]
+        
+    # Create standard JWT
+    jwt_token = create_jwt(user_id)
+    
+    # Store session in DB for cookie-based auth
+    session_token = f"sess_{uuid.uuid4().hex}"
     expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXP_DAYS)
     await db.user_sessions.insert_one({
         "user_id": user_id,
@@ -80,6 +121,30 @@ async def google_session(payload: GoogleSessionInput, response: Response):
         "expires_at": expires_at.isoformat(),
         "created_at": now_iso(),
     })
+    
+    # Redirect to frontend with token in query params so the frontend can store it
+    # We don't set cookie here because cross-origin cookie setting during a redirect often fails
+    redirect_url = f"{FRONTEND_URL}/auth/callback?token={session_token}"
+    return RedirectResponse(url=redirect_url)
+
+
+@router.post("/google/session")
+async def google_session(payload: dict, response: Response):
+    """
+    Exchanges the query param token for an HTTP-only cookie.
+    Called by the frontend AuthCallback page.
+    """
+    session_token = payload.get("session_id") # frontend sends it as session_id
+    if not session_token:
+        raise HTTPException(status_code=400, detail="Missing session_id")
+        
+    sess = await db.user_sessions.find_one({"session_token": session_token})
+    if not sess:
+        raise HTTPException(status_code=401, detail="Invalid session")
+        
+    user_id = sess["user_id"]
+    user_doc = await find_user(user_id)
+    
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -89,7 +154,6 @@ async def google_session(payload: GoogleSessionInput, response: Response):
         samesite="none",
         path="/",
     )
-    user_doc = await find_user(user_id)
     return {"user": user_doc, "session_token": session_token}
 
 

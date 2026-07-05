@@ -11,6 +11,10 @@ import NewInterview from "@/pages/NewInterview";
 import Interview from "@/pages/Interview";
 import InterviewReport from "@/pages/InterviewReport";
 import InterviewerConsole from "@/pages/InterviewerConsole";
+import Profile from "@/pages/Profile";
+import InterviewerBrowse from "@/pages/InterviewerBrowse";
+import InterviewerProfile from "@/pages/InterviewerProfile";
+import BookingDetails from "@/pages/BookingDetails";
 import SharedReport from "@/pages/SharedReport";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -26,11 +30,44 @@ function AppRouter() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/share/:token" element={<SharedReport />} />
+      
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/experts"
+        element={
+          <ProtectedRoute>
+            <InterviewerBrowse />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/interviewer/:id"
+        element={
+          <ProtectedRoute>
+            <InterviewerProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/:id"
+        element={
+          <ProtectedRoute>
+            <BookingDetails />
           </ProtectedRoute>
         }
       />

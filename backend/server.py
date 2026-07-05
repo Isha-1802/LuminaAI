@@ -2,16 +2,23 @@
 import uuid
 import logging
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 import os
 
-from core import init_storage, db, hash_password, mongo_client, now_iso, logger
+from core import db, hash_password, mongo_client, now_iso, logger
 from routes.auth import router as auth_router
 from routes.resumes import router as resumes_router
 from routes.interviews import router as interviews_router
 from routes.stats import router as stats_router
 from routes.kits import router as kits_router
 from routes.share import router as share_router
+from routes.profiles import router as profiles_router
+from routes.bookings import router as bookings_router
+from routes.chat import router as chat_router
+from routes.reviews import router as reviews_router
+from routes.notifications import router as notifications_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
@@ -23,6 +30,15 @@ app.include_router(interviews_router)
 app.include_router(stats_router)
 app.include_router(kits_router)
 app.include_router(share_router)
+app.include_router(profiles_router)
+app.include_router(bookings_router)
+app.include_router(chat_router)
+app.include_router(reviews_router)
+app.include_router(notifications_router)
+
+# Mount uploads directory for profile pictures and media
+from core import UPLOAD_DIR
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 @app.get("/api")
@@ -37,15 +53,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SessionMiddleware, secret_key=os.environ.get("JWT_SECRET", "super-secret-default-key"))
 
 
 @app.on_event("startup")
 async def startup():
-    try:
-        init_storage()
-        logger.info("Object storage initialized")
-    except Exception as e:
-        logger.error(f"Storage init failed: {e}")
+    # Local storage directory is automatically ensured in core.py
 
     demo_email = "demo@lumina.ai"
     exists = await db.users.find_one({"email": demo_email})

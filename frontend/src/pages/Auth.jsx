@@ -17,7 +17,7 @@ export default function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav("/dashboard", { replace: true });
+    if (user) nav("/", { replace: true });
   }, [user, nav]);
 
   useEffect(() => {
@@ -27,8 +27,9 @@ export default function AuthPage() {
   }, [params]);
 
   const onGoogle = () => {
-    const redirect = window.location.origin + "/auth/callback";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirect)}`;
+    localStorage.setItem("pending_role", role);
+    // Uses standard Google OAuth initiated from the backend
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}/api/auth/google`;
   };
 
   const onSubmit = async (e) => {
@@ -42,7 +43,7 @@ export default function AuthPage() {
         await login(form.email, form.password);
         toast.success("Welcome back.");
       }
-      nav("/dashboard");
+      nav("/");
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Something went wrong");
     } finally {
@@ -108,9 +109,28 @@ export default function AuthPage() {
             )}
           </h2>
 
+          <div className="mt-8 mb-6 flex items-stretch border border-[#f2ece0]/[0.1]" data-testid="role-toggle">
+            {[
+              { id: "interviewee", label: "Candidate" },
+              { id: "interviewer", label: "Interviewer" },
+            ].map((r, i) => (
+              <button
+                type="button"
+                key={r.id}
+                onClick={() => setRole(r.id)}
+                className={`flex-1 py-3 px-2 text-[10px] uppercase tracking-[0.1em] transition-all duration-300 ${
+                  role === r.id ? "bg-[#f2ece0] text-[#0c0a09]" : "text-[#a8a094] hover:text-[#f2ece0]"
+                } ${i > 0 ? "border-l border-[#f2ece0]/[0.1]" : ""}`}
+                data-testid={`role-${r.id}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={onGoogle}
-            className="mt-10 w-full inline-flex items-center justify-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-6 py-4 text-[11px] uppercase tracking-[0.28em] font-medium hover:bg-[#c9a96e] transition-all duration-500"
+            className="w-full inline-flex items-center justify-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-6 py-4 text-[11px] uppercase tracking-[0.28em] font-medium hover:bg-[#c9a96e] transition-all duration-500"
             data-testid="google-auth-btn"
           >
             <FcGoogle size={20} /> Continue with Google
@@ -163,26 +183,7 @@ export default function AuthPage() {
               />
             </div>
 
-            {mode === "signup" && (
-              <div className="flex items-stretch border border-[#f2ece0]/[0.1]" data-testid="role-toggle">
-                {[
-                  { id: "interviewee", label: "I'm interviewing" },
-                  { id: "interviewer", label: "I interview others" },
-                ].map((r, i) => (
-                  <button
-                    type="button"
-                    key={r.id}
-                    onClick={() => setRole(r.id)}
-                    className={`flex-1 py-3.5 text-[10px] uppercase tracking-[0.28em] transition-all duration-300 ${
-                      role === r.id ? "bg-[#f2ece0] text-[#0c0a09]" : "text-[#a8a094] hover:text-[#f2ece0]"
-                    } ${i > 0 ? "border-l border-[#f2ece0]/[0.1]" : ""}`}
-                    data-testid={`role-${r.id}`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            )}
+
 
             <button
               type="submit"

@@ -8,7 +8,6 @@ import uuid
 import bcrypt
 import jwt
 import logging
-import requests
 from pathlib import Path
 from typing import Optional, Literal, List
 from datetime import datetime, timezone, timedelta
@@ -17,38 +16,41 @@ from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
-
-from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
-from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
+from groq import Groq, AsyncGroq
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 # --- Config ---
-MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ["DB_NAME"]
-EMERGENT_LLM_KEY = os.environ["EMERGENT_LLM_KEY"]
-JWT_SECRET = os.environ["JWT_SECRET"]
+MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("DB_NAME", "lumina_interview")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+JWT_SECRET = os.environ.get("JWT_SECRET", "supersecretkey")
 APP_NAME = os.environ.get("APP_NAME", "lumina-interview")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3001")
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "./uploads"))
 
 JWT_ALG = "HS256"
 JWT_EXP_DAYS = 30
 SESSION_EXP_DAYS = 7
 
-STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
-EMERGENT_AUTH_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+# Ensure upload directory exists
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger("lumina")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-# --- Available models ---
+# --- Available models (Groq) ---
 AVAILABLE_MODELS = [
-    {"id": "claude-sonnet-4-5-20250929", "provider": "anthropic", "label": "Claude Sonnet 4.5", "family": "Anthropic"},
-    {"id": "gpt-5.2", "provider": "openai", "label": "GPT-5.2", "family": "OpenAI"},
-    {"id": "gemini-3-flash-preview", "provider": "gemini", "label": "Gemini 3 Flash", "family": "Google"},
+    {"id": "llama-3.3-70b-versatile", "provider": "groq", "label": "Llama 3.3 70B", "family": "Meta"},
+    {"id": "llama-3.1-8b-instant", "provider": "groq", "label": "Llama 3.1 8B (Fast)", "family": "Meta"},
+    {"id": "mixtral-8x7b-32768", "provider": "groq", "label": "Mixtral 8x7B", "family": "Mistral"},
+    {"id": "gemma2-9b-it", "provider": "groq", "label": "Gemma 2 9B", "family": "Google"},
 ]
 
 # --- Curated Ateliers (company presets) ---
-# Each atelier tunes: culture_notes, typical topics, difficulty hint, palette
 ATELIERS = [
     {
         "id": "stripe", "name": "Stripe", "tagline": "Payments · Precision · Prose",
@@ -116,38 +118,28 @@ def mongo_client() -> AsyncIOMotorClient:
 
 
 # =======================
-# Object Storage
+# Local File Storage
 # =======================
-_storage_key: Optional[str] = None
-
-
-def init_storage() -> str:
-    global _storage_key
-    if _storage_key:
-        return _storage_key
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_LLM_KEY}, timeout=30)
-    resp.raise_for_status()
-    _storage_key = resp.json()["storage_key"]
-    return _storage_key
-
-
 def put_object(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    resp = requests.put(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key, "Content-Type": content_type},
-        data=data,
-        timeout=120,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    """Save bytes to local filesystem under UPLOAD_DIR."""
+    file_path = UPLOAD_DIR / path
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_bytes(data)
+    return {"path": str(path), "size": len(data)}
 
 
 def get_object(path: str):
-    key = init_storage()
-    resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+    """Read bytes from local filesystem."""
+    file_path = UPLOAD_DIR / path
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    data = file_path.read_bytes()
+    # Basic content type detection
+    suffix = file_path.suffix.lower()
+    ct_map = {".pdf": "application/pdf", ".webm": "video/webm", ".mp4": "video/mp4",
+              ".png": "image/png", ".jpg": "image/jpeg", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+    content_type = ct_map.get(suffix, "application/octet-stream")
+    return data, content_type
 
 
 # =======================
@@ -169,10 +161,110 @@ class GoogleSessionInput(BaseModel):
     session_id: str
 
 
+class UserProfileInput(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=100)
+    picture: Optional[str] = None
+    headline: Optional[str] = Field(default=None, max_length=120)
+    about: Optional[str] = Field(default=None, max_length=1000)
+    current_company: Optional[str] = Field(default=None, max_length=80)
+    previous_companies: Optional[List[str]] = None
+    years_of_experience: Optional[int] = Field(default=None, ge=0)
+    expertise: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
+    hourly_rate: Optional[int] = Field(default=None, ge=0)
+    is_available: Optional[bool] = None
+    available_slots: Optional[List[str]] = None
+    linkedin_url: Optional[str] = Field(default=None, max_length=200)
+
+class BookingInput(BaseModel):
+    interviewer_id: str
+    start_time: str
+    end_time: str
+
+
+class ReviewInput(BaseModel):
+    booking_id: str
+    rating: int = Field(ge=1, le=5)
+    comment: Optional[str] = Field(default=None, max_length=1000)
+
+
+# ---------------------------------------------------------------------------
+# Monetization Tier System
+# ---------------------------------------------------------------------------
+# Works like YouTube/Instagram monetization — performance unlocks earnings.
+# Interviewers do NOT set their own rate; the platform assigns it based on
+# completed interview count and average rating.
+# ---------------------------------------------------------------------------
+
+MONETIZATION_TIERS = [
+    # name, min_interviews, min_avg_rating, rate_inr, next_goal_label
+    {
+        "tier": "Building",
+        "min_interviews": 0,
+        "min_rating": 0.0,
+        "rate_inr": 0,
+        "is_monetized": False,
+        "color": "#a8a094",
+        "description": "Complete 5 interviews to unlock earnings.",
+    },
+    {
+        "tier": "Bronze",
+        "min_interviews": 5,
+        "min_rating": 3.5,
+        "rate_inr": 599,
+        "is_monetized": True,
+        "color": "#cd7f32",
+        "description": "Keep a 4.0+ rating across 15 interviews to reach Silver.",
+    },
+    {
+        "tier": "Silver",
+        "min_interviews": 15,
+        "min_rating": 4.0,
+        "rate_inr": 1199,
+        "is_monetized": True,
+        "color": "#c0c0c0",
+        "description": "Maintain 4.5+ rating across 30 interviews to reach Gold.",
+    },
+    {
+        "tier": "Gold",
+        "min_interviews": 30,
+        "min_rating": 4.5,
+        "rate_inr": 2499,
+        "is_monetized": True,
+        "color": "#c9a96e",
+        "description": "Achieve 4.8+ rating across 50 interviews to reach Elite.",
+    },
+    {
+        "tier": "Elite",
+        "min_interviews": 50,
+        "min_rating": 4.8,
+        "rate_inr": 4999,
+        "is_monetized": True,
+        "color": "#f2ece0",
+        "description": "You have reached the highest tier. Maximum earnings unlocked.",
+    },
+]
+
+
+def compute_monetization_tier(interview_count: int, avg_rating: float) -> dict:
+    """
+    Given an interviewer's completed interview count and average rating,
+    return the highest tier they qualify for.
+    Tiers are evaluated highest-first so we award the best applicable tier.
+    """
+    best_tier = MONETIZATION_TIERS[0]  # Default: Building
+    for tier in reversed(MONETIZATION_TIERS):
+        if interview_count >= tier["min_interviews"] and avg_rating >= tier["min_rating"]:
+            best_tier = tier
+            break
+    return best_tier
+
+
 class CounselPersona(BaseModel):
     name: str = Field(min_length=1, max_length=60)
-    role: str = Field(min_length=1, max_length=80)      # e.g. "Engineering Manager"
-    style: Optional[str] = Field(default=None, max_length=180)  # e.g. "warm, probing, systems-thinker"
+    role: str = Field(min_length=1, max_length=80)
+    style: Optional[str] = Field(default=None, max_length=180)
 
 
 class InterviewCreateInput(BaseModel):
@@ -180,11 +272,11 @@ class InterviewCreateInput(BaseModel):
     role_title: str = Field(min_length=1)
     interview_type: Literal["technical", "behavioral", "coding", "hr", "panel"] = "technical"
     difficulty: Literal["easy", "medium", "hard"] = "medium"
-    model_id: str = "gemini-3-flash-preview"
+    model_id: str = "llama-3.3-70b-versatile"
     resume_id: Optional[str] = None
     num_questions: int = Field(default=5, ge=3, le=12)
-    atelier_id: Optional[str] = None        # "stripe" | "airbnb" | ...
-    panel_config: Optional[List[CounselPersona]] = None  # for interview_type=panel
+    atelier_id: Optional[str] = None
+    panel_config: Optional[List[CounselPersona]] = None
     kit_id: Optional[str] = None
 
 
@@ -259,12 +351,10 @@ def safe_json(text: str):
 
 
 def strip_mongo(doc: dict) -> dict:
-    """Remove Mongo internal fields for API safety."""
     return {k: v for k, v in doc.items() if k not in ("_id",)}
 
 
 def extract_resume_text(filename: str, data: bytes) -> str:
-    """Best-effort resume text extraction (PDF/DOCX/TXT)."""
     lower = (filename or "").lower()
     try:
         if lower.endswith(".pdf"):
@@ -289,7 +379,7 @@ async def find_user(user_id: str) -> Optional[dict]:
 
 
 async def get_current_user(request: Request) -> dict:
-    # 1. Session cookie (Google auth)
+    # 1. Session cookie
     session_token = request.cookies.get("session_token")
     if session_token:
         sess = await db.user_sessions.find_one({"session_token": session_token}, {"_id": 0})
@@ -304,7 +394,7 @@ async def get_current_user(request: Request) -> dict:
                 if user:
                     return user
 
-    # 2. Bearer JWT (email/password) OR Emergent session token via header
+    # 2. Bearer JWT
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
         token = auth_header.replace("Bearer ", "", 1).strip()
@@ -330,13 +420,12 @@ async def require_interviewer(request: Request) -> dict:
 
 
 # =======================
-# LLM helpers
+# Groq LLM helpers
 # =======================
-def resolve_model(model_id: str) -> tuple[str, str]:
-    for m in AVAILABLE_MODELS:
-        if m["id"] == model_id:
-            return m["provider"], m["id"]
-    return "gemini", "gemini-3-flash-preview"
+def _resolve_groq_model(model_id: str) -> str:
+    """Return a valid Groq model ID, falling back to default."""
+    valid_ids = {m["id"] for m in AVAILABLE_MODELS}
+    return model_id if model_id in valid_ids else "llama-3.3-70b-versatile"
 
 
 def _atelier_notes(atelier_id: Optional[str]) -> str:
@@ -354,7 +443,6 @@ def _atelier_notes(atelier_id: Optional[str]) -> str:
 
 
 def build_interview_system_prompt(spec: dict, resume_text: Optional[str]) -> str:
-    """Standard single-counsel system prompt."""
     resume_block = f"\n\nCANDIDATE RESUME:\n{resume_text}\n" if resume_text else ""
     atelier_block = _atelier_notes(spec.get("atelier_id"))
     custom = spec.get("custom_prompt") or ""
@@ -375,7 +463,6 @@ Begin by greeting the candidate briefly in ONE line, then ask question 1."""
 
 
 def build_panel_counsel_prompt(spec: dict, counsel: dict, panel: list, q_index: int, total: int, resume_text: Optional[str]) -> str:
-    """Per-counsel system prompt for panel simulations."""
     resume_block = f"\n\nCANDIDATE RESUME:\n{resume_text}\n" if resume_text else ""
     atelier_block = _atelier_notes(spec.get("atelier_id"))
     other = ", ".join(f"{c['name']} ({c['role']})" for c in panel if c['name'] != counsel['name'])
@@ -397,52 +484,90 @@ Now: pose the next question as {counsel['name']}."""
 
 
 async def llm_chat(model_id: str, session_id: str, system_prompt: str, user_text: str) -> str:
-    provider, model = resolve_model(model_id)
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=system_prompt,
-    ).with_model(provider, model)
+    """Send a chat message via Groq and return the response string."""
+    model = _resolve_groq_model(model_id)
+    client = AsyncGroq(api_key=GROQ_API_KEY)
     try:
-        reply = await chat.send_message(UserMessage(text=user_text))
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_text},
+            ],
+            temperature=0.7,
+            max_tokens=1024,
+        )
+        return response.choices[0].message.content or ""
     except Exception as e:
         msg = str(e).lower()
-        if "budget" in msg:
-            raise HTTPException(
-                status_code=402,
-                detail="Your Emergent Universal Key budget is exhausted for this provider. Add balance in Profile → Universal Key, or switch to Gemini 3 Flash.",
-            )
+        if "rate" in msg or "limit" in msg:
+            raise HTTPException(status_code=429, detail="Groq rate limit hit. Please wait a moment and try again.")
         raise HTTPException(status_code=502, detail=f"AI provider error: {str(e)[:200]}")
-    return reply if isinstance(reply, str) else str(reply)
 
 
 async def llm_stream(model_id: str, session_id: str, system_prompt: str, user_text: str):
-    provider, model = resolve_model(model_id)
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=system_prompt,
-    ).with_model(provider, model)
+    """Stream chat tokens via Groq."""
+    model = _resolve_groq_model(model_id)
+    client = AsyncGroq(api_key=GROQ_API_KEY)
     try:
-        async for event in chat.stream_message(UserMessage(text=user_text)):
-            if isinstance(event, TextDelta):
-                yield event.content
-            elif isinstance(event, StreamDone):
-                break
+        stream = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_text},
+            ],
+            temperature=0.7,
+            max_tokens=1024,
+            stream=True,
+        )
+        async for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
     except Exception as e:
         msg = str(e).lower()
-        if "budget" in msg:
-            yield "[[ERROR:BUDGET_EXHAUSTED]]"
+        if "rate" in msg or "limit" in msg:
+            yield "[[ERROR:RATE_LIMITED]]"
         else:
             yield f"[[ERROR:{str(e)[:180]}]]"
 
 
-def openai_stt() -> OpenAISpeechToText:
-    return OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+async def groq_stt(audio_bytes: bytes, filename: str = "audio.webm") -> str:
+    """Transcribe audio using Groq's Whisper large-v3."""
+    client = AsyncGroq(api_key=GROQ_API_KEY)
+    try:
+        transcription = await client.audio.transcriptions.create(
+            file=(filename, audio_bytes),
+            model="whisper-large-v3",
+            response_format="text",
+            language="en",
+        )
+        return str(transcription).strip()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Transcription failed: {str(e)[:200]}")
 
 
-def openai_tts() -> OpenAITextToSpeech:
-    return OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+# Keep these names for backward compat with interview routes
+def openai_stt():
+    """Returns a shim that routes to Groq Whisper."""
+    class GroqSTTShim:
+        async def transcribe(self, file, model="whisper-large-v3", response_format="json", language="en"):
+            data = file.read() if hasattr(file, "read") else file
+            name = getattr(file, "name", "audio.webm")
+            text = await groq_stt(data, name)
+            return type("T", (), {"text": text})()
+    return GroqSTTShim()
+
+
+def openai_tts():
+    """TTS shim — returns None; handled client-side by browser SpeechSynthesis."""
+    class NoopTTS:
+        async def generate_speech(self, text, model="", voice="", response_format="mp3"):
+            raise HTTPException(
+                status_code=501,
+                detail="Server-side TTS is not available in local mode. The frontend uses browser SpeechSynthesis instead."
+            )
+    return NoopTTS()
 
 
 # =======================

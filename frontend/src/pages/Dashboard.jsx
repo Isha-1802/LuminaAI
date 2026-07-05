@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Upload, FileText, ArrowUpRight, Loader2, Play, ChevronRight } from "lucide-react";
+import { Upload, FileText, ArrowUpRight, Loader2, Play, ChevronRight, Cpu, Users, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 const scoreTone = (s) => (s >= 80 ? "text-[#c9a96e]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
@@ -16,26 +16,33 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [resumes, setResumes] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const [s, r, iv] = await Promise.all([
+      const [s, r, iv, b] = await Promise.all([
         api.get("/stats/summary"),
         api.get("/resumes"),
         api.get("/interviews"),
+        api.get("/bookings/"),
       ]);
       setStats(s.data);
       setResumes(r.data);
       setInterviews(iv.data);
+      setBookings(b.data);
     } catch (e) {
       console.error(e);
     }
   }, []);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (user?.role === "interviewer") {
+      nav("/console", { replace: true });
+    } else {
+      refresh();
+    }
+  }, [refresh, user, nav]);
 
   const onUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -68,21 +75,40 @@ export default function Dashboard() {
         {/* Editorial header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="border-b border-[#f2ece0]/[0.08] pb-10">
           <div className="flex items-center justify-between mb-6">
-            <div className="overline-gold">§ Salon — Private Record</div>
+            <div className="overline-gold">§ Dashboard — Private Record</div>
             <div className="overline">Volume I · {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}</div>
           </div>
           <div className="flex items-end justify-between flex-wrap gap-8">
             <h1 className="font-display text-[52px] md:text-[72px] leading-[0.94] tracking-[-0.03em]" data-testid="dashboard-greeting">
               Welcome, <span className="font-display-italic text-shimmer">{first}</span>.
             </h1>
-            <Link
-              to={user?.role === "interviewer" ? "/console" : "/interview/new"}
-              className="group inline-flex items-center gap-2 border border-[#c9a96e] text-[#f2ece0] px-8 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500"
-              data-testid="new-interview-btn"
-            >
-              {user?.role === "interviewer" ? "Open the Console" : "Compose a rehearsal"}
-              <ArrowUpRight size={14} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+            {user?.role === "interviewer" ? (
+              <Link
+                to="/console"
+                className="group inline-flex items-center gap-2 border border-[#c9a96e] text-[#f2ece0] px-8 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500"
+                data-testid="new-interview-btn"
+              >
+                Open the Console
+                <ArrowUpRight size={14} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            ) : (
+              <div className="flex gap-4">
+                <Link
+                  to="/interview/new"
+                  className="group inline-flex items-center gap-2 border border-[#c9a96e] text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.28em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500"
+                  data-testid="practice-ai-btn"
+                >
+                  <Cpu size={14} /> Practice with AI
+                </Link>
+                <button
+                  onClick={() => nav("/experts")}
+                  className="group inline-flex items-center gap-2 border border-[#f2ece0]/20 text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.28em] hover:border-[#c9a96e] transition-all duration-500"
+                  data-testid="interview-human-btn"
+                >
+                  <Users size={14} /> Interview with Human
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -110,6 +136,47 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Upcoming Bookings Section */}
+        {bookings.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.05 }} className="mt-14 border border-[#f2ece0]/[0.08] p-10 bg-[#f2ece0]/[0.02]">
+            <div className="flex items-center gap-3 mb-6">
+              <Calendar className="text-[#c9a96e]" />
+              <h3 className="font-display text-3xl tracking-tight">Upcoming Sessions</h3>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bookings.map(b => (
+                <div key={b.booking_id} className="border border-[#c9a96e]/20 p-6 bg-[#0c0a09]">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="font-medium text-[#f2ece0]">
+                        {user.role === 'interviewer' ? b.candidate_name : b.interviewer_name}
+                      </div>
+                      <div className="text-sm text-[#a8a094]">
+                        {user.role === 'interviewer' ? 'Candidate' : 'Interviewer'}
+                      </div>
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider bg-[#c9a96e]/10 text-[#c9a96e] px-2 py-1">
+                      {b.status}
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-[#a8a094] mb-6">
+                    {fmt(b.start_time)}
+                  </div>
+                  
+                  <Link 
+                    to={`/booking/${b.booking_id}`}
+                    className="block w-full text-center border border-[#c9a96e] py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all"
+                  >
+                    View Details & Join
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <div className="grid lg:grid-cols-12 gap-8 mt-14">
           {/* Dossier — résumés */}
           <motion.div
@@ -121,8 +188,8 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <div className="overline-gold mb-2">Dossier — 01</div>
-                <h3 className="font-display text-3xl tracking-tight">Your résumés</h3>
+                <div className="overline-gold mb-2">Resumes — 01</div>
+                <h3 className="font-display text-3xl tracking-tight">Your Resumes</h3>
               </div>
               <label className="inline-flex items-center gap-2 border border-[#f2ece0]/15 px-4 py-2.5 text-[10px] uppercase tracking-[0.28em] text-[#f2ece0] hover:border-[#c9a96e] hover:text-[#c9a96e] cursor-pointer transition-all" data-testid="upload-resume-btn">
                 {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
@@ -135,7 +202,7 @@ export default function Dashboard() {
               <div className="border border-dashed border-[#f2ece0]/[0.1] py-16 text-center">
                 <FileText size={18} className="text-[#c9a96e] mx-auto mb-4" />
                 <p className="text-sm text-[#a8a094] max-w-[240px] mx-auto leading-relaxed">
-                  File a PDF, DOCX or TXT to unlock résumé-aware rehearsals.
+                  File a PDF, DOCX or TXT to unlock résumé-aware interviews.
                 </p>
               </div>
             ) : (
@@ -167,11 +234,11 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <div className="overline-gold mb-2">Archive — Rehearsals</div>
-                <h3 className="font-display text-3xl tracking-tight">Every room, remembered</h3>
+                <div className="overline-gold mb-2">Interview History</div>
+                <h3 className="font-display text-3xl tracking-tight">Every interview, remembered</h3>
               </div>
               <Link to="/interview/new" className="overline hover:text-[#c9a96e] transition-colors inline-flex items-center gap-2" data-testid="history-new-link">
-                Compose another <ArrowUpRight size={12} />
+                New Interview <ArrowUpRight size={12} />
               </Link>
             </div>
 
@@ -179,14 +246,14 @@ export default function Dashboard() {
               <div className="py-20 text-center">
                 <div className="font-display italic text-6xl text-[#c9a96e]/50 mb-4">"</div>
                 <p className="text-[#a8a094] max-w-md mx-auto leading-relaxed">
-                  Your archive is quiet. The first rehearsal you compose will be bound here — with scores, notes, and the room's exact silhouette.
+                  Your history is quiet. The first interview you complete will be stored here — with scores, notes, and the exact transcript.
                 </p>
                 <Link
                   to="/interview/new"
                   className="mt-8 inline-flex items-center gap-2 border border-[#c9a96e] px-6 py-3 text-[10px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500"
                   data-testid="empty-start-btn"
                 >
-                  <Play size={11} /> Compose the first
+                  <Play size={11} /> Start Interview
                 </Link>
               </div>
             ) : (
