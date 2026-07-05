@@ -1,0 +1,39 @@
+{
+  "summary": "Full backend + frontend regression run for Lumina AI Interview. 12/12 backend pytest tests pass after fixing an ObjectId serialization bug in POST /api/auth/register. Frontend end-to-end signup → dashboard → new interview (Gemini 3 Flash) → chat → finish → report flow works. Landing (3D AI Core, marquee, method, capabilities, counsel, modes, roadmap, FAQ, footer) renders without runtime pageerrors. Auth page shows email/password form and Google button.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/auth/me", "issue": "Anonymous landing page fires /api/auth/me which returns 401 (expected). Two 401 console entries appear on every page load — consider suppressing when no token present."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard", "issues": ["Toast 'Welcome to the atelier.' appears over the Depart button in the top-right nav corner (minor z-order/positioning nit)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "None blocking. Optionally suppress /api/auth/me call when no auth token exists on public routes to remove noisy 401 console errors."
+  ],
+  "critical_code_review_comments": [
+    "register endpoint previously returned motor-mutated doc containing ObjectId `_id` causing 500. Fixed by excluding `_id` from response. Recommend a small utility (e.g., `strip_mongo`) used across all insert-then-return paths so this class of bug can't reappear.",
+    "server.py is a single 674-line module — split into routers (auth, interviews, resumes, stats) as it grows.",
+    "llm_chat uses substring match `\"budget\" in msg` — brittle; consider matching Emergent's specific error code/type if available."
+  ],
+  "updated_files": [
+    "/app/backend/server.py (register response now excludes `_id`)",
+    "/app/backend/tests/backend_test.py (new pytest suite)"
+  ],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "100% of tested flows"},
+  "test_credentials": "demo@lumina.ai / Demo@1234 (seeded). Signup uses random test.<timestamp>@lumina.dev / Test@1234.",
+  "seed_data_creation": "Test users created via /api/auth/register with TEST-style random emails. One in-progress + completed interview created against demo user for signup path. No cleanup performed (test scope).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend + frontend happy path fully green with gemini-3-flash-preview. Emergent LLM key budget still exhausted for Claude/GPT — API returns 402 with clear message (verified). Google OAuth redirect not clicked end-to-end (per instructions) but button and testid present on /auth. All required data-testid attributes present and used successfully by playwright.",
+  "rca of the issue": "POST /api/auth/register returned 500 because motor's insert_one() mutates the passed dict to include `_id` (bson.ObjectId), and the handler then returned that dict via FastAPI JSON serialization, which fails ObjectId->JSON conversion. Fix: added `_id` to the exclusion set when constructing the response payload. Verified by re-running pytest test_register_and_me → PASS."
+}

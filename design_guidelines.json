@@ -1,0 +1,78 @@
+{
+  "theme": "dark",
+  "archetype": "5 (Luxury)",
+  "color_palette": {
+    "background_primary": "#0A0A0A",
+    "background_secondary": "#121418",
+    "surface_glass": "rgba(255, 255, 255, 0.03)",
+    "border_glass": "rgba(255, 255, 255, 0.08)",
+    "primary_accent": "#8B5CF6",
+    "secondary_accent": "#3B82F6",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A1A1AA",
+    "text_muted": "#52525B"
+  },
+  "typography": {
+    "heading_font": "Cormorant Garamond, serif",
+    "body_font": "Outfit, sans-serif",
+    "rules": {
+      "headings": "Tight tracking (tracking-tight), leading-none, used for Hero H1, Cards H3.",
+      "body": "Clean, geometric sans-serif, leading-relaxed for legibility.",
+      "overline": "Uppercase, tracking-[0.2em], tiny size (text-xs) for labels.",
+      "h1_max": "text-5xl md:text-6xl lg:text-7xl. Use elegant scaling, not brutalist massive text."
+    }
+  },
+  "layout_and_spacing": {
+    "spacing_scale": "Generous spacing. py-24 or py-32 for sections. gap-8 or gap-12 for grids.",
+    "grid_system": "Bento 'Control Room' grid for dashboard, 'Tetris' grid for landing page features.",
+    "alignment": "Optical alignment over geometric. Left-aligned text for paragraphs and data.",
+    "card_padding": "p-8 or p-10 for landing page feature cards. p-6 for dashboard widgets."
+  },
+  "surfaces_and_borders": {
+    "glassmorphism": "backdrop-blur-xl or 2xl, bg-white/[0.02], border border-white/10. Inner 1px stroke mandatory.",
+    "shadows": "Ambient diffuse shadows. shadow-[0_8px_32px_rgba(139,92,246,0.05)] for neon bloom.",
+    "cards": "Subtle rounded corners (rounded-2xl) but sharp inner components (rounded-md). Backgrounds must never be pure black, use #121418 or tinted."
+  },
+  "motion_and_interactions": {
+    "hover_states": "-translate-y-1, border-white/20, shadow-lg with faint violet/blue glow.",
+    "scroll_animations": "Framer Motion. Fade in up (y: 20, opacity: 0).",
+    "micro_interactions": "Smooth transitions on all interactive elements. transition-all duration-300 ease-out.",
+    "3d_elements": "React Three Fiber with @react-three/drei. Use <Sphere> with MeshDistortMaterial for the holographic orb, and <Sparkles> for floating ambient particles."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-white text-black hover:bg-zinc-200 rounded-full px-8 py-3 font-medium transition-all",
+      "secondary": "bg-transparent border border-white/20 text-white hover:border-white/40 rounded-full px-8 py-3 transition-all",
+      "accent": "bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] rounded-full px-8 py-3"
+    },
+    "cards": "Glass panels with 'Tracing Beam' border effect on hover.",
+    "inputs": "Shadcn UI heavily customized. bg-black/50, border-white/10, focus:border-violet-500 focus:ring-1 focus:ring-violet-500."
+  },
+  "media": {
+    "icons": "lucide-react or @phosphor-icons/react (Duotone). Use react-icons/fc for Google logo.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhcmslMjBnbGFzcyUyMHRleHR1cmV8ZW58MHx8fHwxNzgzMTg0OTI4fDA&ixlib=rb-4.1.0&q=85",
+        "category": "background_texture",
+        "description": "Abstract dark glass texture with wavy lines for subtle overlay behind hero or sections."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2luZW1hdGljJTIwb2ZmaWNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzgzMTg0OTI3fDA&ixlib=rb-4.1.0&q=85",
+        "category": "dashboard_context",
+        "description": "Cinematic dark office lighting to use for contextual UI mocked inside an environment or as a fallback."
+      }
+    ]
+  },
+  "accessibility": {
+    "contrast": "Ensure APCA contrast ratio. Minimum 4.5:1 for body text.",
+    "focus": "Clear focus rings on inputs and buttons using focus-visible:ring-2 focus-visible:ring-violet-500.",
+    "testing": "All interactive elements MUST have data-testid attributes."
+  },
+  "implementation_instructions": [
+    "Build pure HTML/Tailwind layout for Marketing sections. Use raw divs and spans.",
+    "Use highly customized Shadcn components for Dashboard logic (Forms, Select, Dialog).",
+    "Important: The project uses .js files, NOT .tsx. Provide all React code as modern JavaScript (JSX).",
+    "Hero Section: Implement a 3D holographic orb using Three.js / React Three Fiber. Add floating ambient particles.",
+    "Global layout: Apple x OpenAI x Vercel vibes. Emphasize generous whitespace, dark high-contrast components, and elegant typography."
+  ]
+}
