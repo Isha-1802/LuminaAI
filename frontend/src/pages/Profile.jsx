@@ -7,6 +7,7 @@ import AmbientBackground from "@/components/AmbientBackground";
 import MonetizationCard from "@/components/MonetizationCard";
 import CandidateProfileEditor from "@/components/CandidateProfileEditor";
 import CandidateProgressChart from "@/components/CandidateProgressChart";
+import { AuroraField } from "@/components/Parallax";
 import DevQuote from "@/components/DevQuote";
 import { Loader2, Save } from "lucide-react";
 import { motion } from "framer-motion";
@@ -131,8 +132,7 @@ export default function Profile() {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
         <Navbar />
-        <ProfileBackdrop />
-        <AmbientBackground variant="warm" />
+        <AuroraField variant="ember" />
         <div className="pt-[112px] max-w-[900px] mx-auto px-6 md:px-12 pb-24 relative z-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <div className="overline-gold mb-4">§ Settings</div>
@@ -152,8 +152,7 @@ export default function Profile() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
       <Navbar />
-      <ProfileBackdrop />
-      <AmbientBackground variant="warm" />
+      <AuroraField variant="ember" />
       <div className="pt-[112px] max-w-[800px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div className="overline-gold mb-4">§ Settings</div>

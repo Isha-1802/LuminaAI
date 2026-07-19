@@ -80,6 +80,21 @@ async def upload_resume(file: UploadFile = File(...), user: dict = Depends(get_c
     return {k: v for k, v in doc.items() if k not in ("extracted_text", "storage_path", "_id")}
 
 
+@router.delete("/{resume_id}")
+async def delete_resume(resume_id: str, user: dict = Depends(get_current_user)):
+    """Remove a resume from the candidate's list.
+
+    Soft delete: past interviews that referenced this resume keep working.
+    """
+    result = await db.resumes.update_one(
+        {"resume_id": resume_id, "user_id": user["user_id"], "is_deleted": False},
+        {"$set": {"is_deleted": True, "deleted_at": now_iso()}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    return {"ok": True, "resume_id": resume_id}
+
+
 @router.get("")
 async def list_resumes(user: dict = Depends(get_current_user)):
     docs = await db.resumes.find(

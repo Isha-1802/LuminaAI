@@ -8,6 +8,7 @@ import { Send, Loader2, Flag, Volume2, VolumeX, Camera, Keyboard, Waves } from "
 import { toast } from "sonner";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import WebcamPanel from "@/components/WebcamPanel";
+import useSpeech from "@/lib/useSpeech";
 
 export default function Interview() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function Interview() {
   const [webcamOn, setWebcamOn] = useState(false);
   const audioElRef = useRef(null);
   const scrollRef = useRef(null);
+  const { speak, stop: stopSpeaking, speaking, supported: speechSupported } = useSpeech(ttsOn);
 
   const load = async () => {
     try {
@@ -41,19 +43,11 @@ export default function Interview() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [interview?.messages?.length, streamingText]);
 
-  // ============= TTS playback =============
-  const playAudio = async (text) => {
+  // ============= The counsel's voice =============
+  // Browser SpeechSynthesis: instant, free, and works without a network round-trip.
+  const playAudio = (text) => {
     if (!ttsOn || !text) return;
-    try {
-      const { data } = await api.post("/tts", { text, voice: "sage" }, { responseType: "blob" });
-      const url = URL.createObjectURL(data);
-      if (audioElRef.current) {
-        audioElRef.current.src = url;
-        audioElRef.current.play().catch(() => {});
-      }
-    } catch (e) {
-      // silent — user still sees the text
-    }
+    speak(text);
   };
 
   // Speak the very first counsel message on load
@@ -222,7 +216,23 @@ export default function Interview() {
           {/* Session header */}
           <div className="py-6 flex items-end justify-between border-b border-[#f2ece0]/[0.08] flex-wrap gap-4" data-testid="interview-header">
             <div>
-              <div className="overline-gold mb-2">Session — Live</div>
+              <div className="overline-gold mb-2 flex items-center gap-3">
+                Session — Live
+                {speaking && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="inline-flex items-center gap-1.5 text-[#e2b48c] normal-case tracking-normal"
+                    data-testid="counsel-speaking"
+                  >
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className="eq-bar" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                    <span className="ml-1 text-[11px]">the counsel is speaking</span>
+                  </motion.span>
+                )}
+              </div>
               <div className="font-display text-3xl md:text-4xl tracking-tight">{interview.role_title}</div>
               <div className="overline mt-3">
                 {interview.interview_type} · {interview.difficulty} · Question {Math.min(qCount, interview.num_questions)} / {interview.num_questions}
@@ -240,17 +250,21 @@ export default function Interview() {
               >
                 <Waves size={11} /> Voice
               </button>
-              {/* TTS toggle */}
+              {/* Counsel voice toggle — silences immediately when turned off */}
               <button
-                onClick={() => setTtsOn((v) => !v)}
-                className={`inline-flex items-center gap-2 border px-3 py-2 text-[10px] uppercase tracking-[0.28em] transition-all ${
+                onClick={() => {
+                  if (ttsOn) stopSpeaking();
+                  setTtsOn(!ttsOn);
+                }}
+                disabled={!speechSupported}
+                className={`inline-flex items-center gap-2 border px-3 py-2 text-[10px] uppercase tracking-[0.28em] transition-all disabled:opacity-40 ${
                   ttsOn ? "border-[#c68b73] text-[#c68b73]" : "border-[#f2ece0]/15 text-[#a8a094]"
                 }`}
                 data-testid="tts-toggle"
-                title="AI voice"
+                title={speechSupported ? "The counsel's voice" : "Voice not supported in this browser"}
               >
                 {ttsOn ? <Volume2 size={11} /> : <VolumeX size={11} />}
-                {ttsOn ? "TTS on" : "TTS off"}
+                {ttsOn ? "Voice on" : "Voice off"}
               </button>
               {/* Webcam toggle */}
               <button

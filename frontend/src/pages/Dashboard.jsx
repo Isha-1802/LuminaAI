@@ -11,15 +11,17 @@ import PracticeCalendar from "@/components/PracticeCalendar";
 import CountUp from "@/components/CountUp";
 import ResumeVerdict from "@/components/ResumeVerdict";
 import DailyQuestion from "@/components/DailyQuestion";
+import { AuroraField, ParallaxImage, ParallaxLayer } from "@/components/Parallax";
 import Ripple from "@/components/Ripple";
 import MagneticButton from "@/components/MagneticButton";
-import { Upload, FileText, ArrowUpRight, Loader2, Play, ChevronRight, Sparkles, Calendar } from "lucide-react";
+import { Upload, FileText, ArrowUpRight, Loader2, Play, ChevronRight, Sparkles, Calendar, X } from "lucide-react";
 import { toast } from "sonner";
 
 const scoreTone = (s) => (s >= 80 ? "text-[#c68b73]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
 const fmt = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 const DASHBOARD_BG = "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2luZW1hdGljJTIwb2ZmaWNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzgzMTg0OTI3fDA&ixlib=rb-4.1.0&q=85";
+const ARCHIVE_BG = "https://images.unsplash.com/photo-1507842217343-583bb7270b66?crop=entropy&cs=srgb&fm=jpg&q=85&w=1600";
 
 const GLASS = "rounded-2xl bg-[#f2ece0]/[0.05] backdrop-blur-2xl border border-[#f2ece0]/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_40px_rgba(0,0,0,0.5)]";
 const GLASS_HOVER = "hover:bg-[#f2ece0]/[0.08] hover:border-[#c68b73]/30 transition-all duration-500";
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [interviews, setInterviews] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -82,6 +85,21 @@ export default function Dashboard() {
     }
   };
 
+  const onDeleteResume = async (resume) => {
+    const label = resume.original_filename || "this résumé";
+    if (!window.confirm(`Remove ${label}? Past interviews that used it stay intact.`)) return;
+    setDeletingId(resume.resume_id);
+    try {
+      await api.delete(`/resumes/${resume.resume_id}`);
+      setResumes((rs) => rs.filter((r) => r.resume_id !== resume.resume_id));
+      toast.success("Résumé removed");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Could not remove résumé");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const first = user?.name?.split(" ")[0] || "friend";
 
   const growthProfile = useMemo(() => {
@@ -97,13 +115,9 @@ export default function Dashboard() {
   }, [interviews]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="dashboard-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen text-[#f2ece0]" data-testid="dashboard-page">
       <Navbar />
-      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute inset-0 bg-cover bg-center opacity-[0.20] bg-drift" style={{ backgroundImage: `url(${DASHBOARD_BG})` }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09]/60 via-[#0c0a09]/90 to-[#0c0a09]" />
-      </div>
-      <AmbientBackground />
+      <AuroraField variant="default" />
 
       <div className="pt-[112px] max-w-[1400px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         {/* Editorial header */}
@@ -265,6 +279,22 @@ export default function Dashboard() {
           </motion.div>
         )}
 
+        {/* Editorial parallax band — breaks the scroll and adds depth */}
+        <div className="mt-16 rounded-2xl overflow-hidden border border-[#f2ece0]/[0.1]">
+          <ParallaxImage src={ARCHIVE_BG} height="h-[300px] md:h-[380px]" strength={22} opacity={0.4}>
+            <div className="h-full flex flex-col justify-center px-10 md:px-16">
+              <ParallaxLayer strength={26}>
+                <div className="overline-gold mb-4">§ The Record</div>
+                <h3 className="font-display text-4xl md:text-6xl leading-[0.98] tracking-[-0.03em] max-w-2xl">
+                  Every rehearsal you file
+                  <br />
+                  <span className="font-display-italic text-shimmer">becomes evidence.</span>
+                </h3>
+              </ParallaxLayer>
+            </div>
+          </ParallaxImage>
+        </div>
+
         <div className="grid lg:grid-cols-12 gap-8 mt-14">
           {/* Dossier — résumés */}
           <motion.div
@@ -307,6 +337,17 @@ export default function Dashboard() {
                       <div className="overline mt-1">{fmt(r.created_at)}</div>
                     </div>
                     <ResumeVerdict resume={r} />
+                    <button
+                      type="button"
+                      onClick={() => onDeleteResume(r)}
+                      disabled={deletingId === r.resume_id}
+                      className="shrink-0 text-[#6b6459] hover:text-[#8a5052] transition-colors disabled:opacity-40"
+                      title="Remove résumé"
+                      aria-label={`Remove ${r.original_filename || "résumé"}`}
+                      data-testid={`resume-delete-${r.resume_id}`}
+                    >
+                      {deletingId === r.resume_id ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                    </button>
                   </div>
                 ))}
               </div>

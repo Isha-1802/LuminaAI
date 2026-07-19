@@ -113,6 +113,55 @@ pre,
     will-change: transform;
 }
 
+/* Aurora field — very slow breathing so the colour never sits static.
+   Transform-only, so it composites on the GPU without repainting. */
+@keyframes aurora-breathe {
+    0%,
+    100% {
+        transform: scale(1.06) translate3d(0, 0, 0);
+    }
+    50% {
+        transform: scale(1.14) translate3d(-1.5%, 1.5%, 0);
+    }
+}
+.aurora-drift {
+    animation: aurora-breathe 40s ease-in-out infinite;
+    will-change: transform;
+}
+
+/* Equalizer bars for the "counsel is speaking" indicator.
+   CSS rather than framer so an infinite child animation can never block
+   AnimatePresence from unmounting the element. */
+@keyframes eq-bounce {
+    0%,
+    100% {
+        height: 4px;
+    }
+    25% {
+        height: 12px;
+    }
+    50% {
+        height: 6px;
+    }
+    75% {
+        height: 14px;
+    }
+}
+.eq-bar {
+    width: 3px;
+    border-radius: 9999px;
+    background: #e2b48c;
+    animation: eq-bounce 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aurora-drift,
+    .bg-drift,
+    .eq-bar {
+        animation: none;
+    }
+}
+
 /* Dark neumorphism — soft extruded / pressed surfaces */
 .neo-card {
     background: linear-gradient(145deg, #171210, #0e0b09);

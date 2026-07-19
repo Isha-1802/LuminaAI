@@ -6,6 +6,7 @@ import AmbientBackground from "@/components/AmbientBackground";
 import Ripple from "@/components/Ripple";
 import TiltCard from "@/components/TiltCard";
 import TextReveal from "@/components/TextReveal";
+import { AuroraField, ParallaxLayer } from "@/components/Parallax";
 
 const GLASS = "rounded-2xl bg-[#f2ece0]/[0.05] backdrop-blur-2xl border border-[#f2ece0]/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_40px_rgba(0,0,0,0.5)]";
 
@@ -46,11 +47,11 @@ export default function PracticeHub() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.45 }}
-      className="min-h-screen bg-[#0c0a09] text-[#f2ece0]"
+      className="min-h-screen text-[#f2ece0]"
       data-testid="practice-hub-page"
     >
       <Navbar />
-      <AmbientBackground />
+      <AuroraField variant="cool" />
 
       <div className="pt-[112px] max-w-[1400px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         <motion.div

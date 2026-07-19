@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import InterviewHeatmap from "@/components/InterviewHeatmap";
 import SpeechAnalyticsPanel from "@/components/SpeechAnalyticsPanel";
 import AmbientBackground from "@/components/AmbientBackground";
+import { AuroraField } from "@/components/Parallax";
 
 const REPORT_BG = "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhcmslMjBnbGFzcyUyMHRleHR1cmV8ZW58MHx8fHwxNzgzMTg0OTI4fDA&ixlib=rb-4.1.0&q=85";
 
@@ -142,13 +143,9 @@ export default function InterviewReport() {
   const overall = fb.overall_score ?? 0;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="report-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen text-[#f2ece0]" data-testid="report-page">
       <Navbar />
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 bg-cover bg-center opacity-[0.12] bg-drift" style={{ backgroundImage: `url(${REPORT_BG})` }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09]/75 via-[#0c0a09]/90 to-[#0c0a09]" />
-      </div>
-      <AmbientBackground />
+      <AuroraField variant="cool" />
       <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         {/* Cover */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="border-b border-[#f2ece0]/[0.08] pb-10 mb-16">

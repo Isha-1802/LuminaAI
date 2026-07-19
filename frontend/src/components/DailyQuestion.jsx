@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Flame, Loader2, Send, CheckCircle2, RotateCcw } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -63,6 +63,21 @@ export default function DailyQuestion({ onAnswered }) {
           {q.topic} · {q.difficulty}
         </span>
       </div>
+
+      {q.source === "weak_question" && (
+        <div className="mb-5 flex items-start gap-3 p-4 rounded-xl bg-[#e2b48c]/[0.06] border border-[#e2b48c]/25" data-testid="daily-review-banner">
+          <RotateCcw size={15} className="text-[#e2b48c] shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <span className="text-[#e2b48c] font-medium">
+              Second look{q.review_round > 1 ? ` · round ${q.review_round}` : ""}
+            </span>
+            <span className="text-[#a8a094]">
+              {" "}— you struggled with this one before.
+              {q.prior_note ? ` Last time: "${q.prior_note}"` : ""}
+            </span>
+          </div>
+        </div>
+      )}
 
       <p className="text-[#f2ece0] leading-relaxed md:text-lg max-w-3xl mb-6" data-testid="daily-question-text">
         {q.question}

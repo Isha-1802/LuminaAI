@@ -10,6 +10,10 @@ import LiveInterviewDemo from "@/components/LiveInterviewDemo";
 import FaqAccordion from "@/components/FaqAccordion";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
+import { ParallaxImage, ParallaxLayer } from "@/components/Parallax";
+
+const BAND_ROOM = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?crop=entropy&cs=srgb&fm=jpg&q=85&w=1600";
+const BAND_FOCUS = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=srgb&fm=jpg&q=85&w=1600";
 
 const fadeUp = {
   initial: { opacity: 0, y: 32 },
@@ -246,6 +250,28 @@ export default function Landing() {
       </section>
 
       {/* =========================================== */}
+      {/* =========  PARALLAX BAND — THE ROOM  ====== */}
+      {/* =========================================== */}
+      <ParallaxImage
+        src={BAND_ROOM}
+        height="h-[340px] md:h-[460px]"
+        strength={20}
+        opacity={0.38}
+        className="my-8"
+      >
+        <div className="h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-center">
+          <ParallaxLayer strength={30}>
+            <div className="overline-gold mb-5">§ The Room</div>
+            <h2 className="font-display text-[40px] md:text-[76px] leading-[0.96] tracking-[-0.03em] max-w-3xl">
+              The room does not care
+              <br />
+              <span className="font-display-italic text-shimmer">how nervous you were.</span>
+            </h2>
+          </ParallaxLayer>
+        </div>
+      </ParallaxImage>
+
+      {/* =========================================== */}
       {/* ==============  THE METHOD  =============== */}
       {/* =========================================== */}
       <section id="method" className="relative py-32 md:py-40" data-testid="features-section">
@@ -451,6 +477,27 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* =========================================== */}
+      {/* ======  PARALLAX BAND — THE DISCIPLINE  ==== */}
+      {/* =========================================== */}
+      <ParallaxImage
+        src={BAND_FOCUS}
+        height="h-[320px] md:h-[420px]"
+        strength={16}
+        opacity={0.34}
+      >
+        <div className="h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-center items-end text-right">
+          <ParallaxLayer strength={24}>
+            <div className="overline-gold mb-5">§ The Discipline</div>
+            <h2 className="font-display text-[36px] md:text-[64px] leading-[0.98] tracking-[-0.03em] max-w-2xl">
+              Talent is common.
+              <br />
+              <span className="font-display-italic text-shimmer">Rehearsal is not.</span>
+            </h2>
+          </ParallaxLayer>
+        </div>
+      </ParallaxImage>
 
       {/* =========================================== */}
       {/* ==========  INTERVIEW MODES  ============== */}
