@@ -251,6 +251,48 @@ export default function InterviewReport() {
           </motion.div>
         </div>
 
+        {/* Question-by-question analysis */}
+        {(fb.question_analysis || []).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.32 }}
+            className="border-t border-[#f2ece0]/[0.08] pt-16 mb-16"
+            data-testid="question-analysis-panel"
+          >
+            <div className="overline-gold mb-2">§ Question by Question</div>
+            <h3 className="font-display text-3xl tracking-tight mb-8">Where the points went</h3>
+            <div className="space-y-0 border border-[#f2ece0]/[0.08]">
+              {fb.question_analysis.map((q, i) => {
+                const verdictStyle =
+                  q.verdict === "strong"
+                    ? "border-[#c68b73]/40 text-[#c68b73]"
+                    : q.verdict === "struggled"
+                    ? "border-[#8a5052]/50 text-[#e2b48c]"
+                    : "border-[#f2ece0]/20 text-[#a8a094]";
+                return (
+                  <div
+                    key={i}
+                    className={`p-6 md:p-8 flex gap-6 items-start ${i > 0 ? "border-t border-[#f2ece0]/[0.08]" : ""}`}
+                    data-testid={`question-analysis-${i}`}
+                  >
+                    <span className="font-display italic text-[#c68b73] text-3xl leading-none shrink-0">
+                      0{i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[#f2ece0] leading-relaxed">{q.question}</p>
+                      <p className="text-sm text-[#a8a094] mt-2 leading-relaxed">{q.note}</p>
+                    </div>
+                    <span className={`shrink-0 text-[9px] uppercase tracking-[0.32em] px-3 py-1.5 border ${verdictStyle}`}>
+                      {q.verdict}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {/* Heatmap */}
         {fb.heatmap && (
           <motion.div
@@ -304,6 +346,66 @@ export default function InterviewReport() {
             )}
           </div>
         </motion.div>
+
+        {/* Drill list — concrete action items */}
+        {(fb.action_items || []).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.41 }}
+            className="border-t border-[#f2ece0]/[0.08] pt-16 mb-16"
+            data-testid="action-items-panel"
+          >
+            <div className="overline-gold mb-2">§ The Drill List</div>
+            <h3 className="font-display text-3xl tracking-tight mb-8">Do these before your next rehearsal</h3>
+            <ul className="space-y-4">
+              {fb.action_items.map((a, i) => (
+                <li
+                  key={i}
+                  className="flex gap-5 items-start p-5 rounded-xl bg-[#f2ece0]/[0.03] border border-[#f2ece0]/[0.08]"
+                  data-testid={`action-item-${i}`}
+                >
+                  <span className="w-6 h-6 rounded-full border border-[#c68b73]/50 text-[#c68b73] text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    {i + 1}
+                  </span>
+                  <span className="text-[#f2ece0] leading-relaxed text-sm">{a}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
+        {/* Next rehearsal recommendation — closes the loop */}
+        {fb.next_rehearsal && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.42 }}
+            className="mb-16 p-10 md:p-12 rounded-2xl border border-[#c68b73]/30 bg-[#c68b73]/[0.05] relative overflow-hidden"
+            data-testid="next-rehearsal-panel"
+          >
+            <div className="absolute -top-20 -right-20 w-[300px] h-[300px] rounded-full bg-[#c68b73]/[0.08] blur-[90px]" aria-hidden="true" />
+            <div className="relative flex flex-wrap items-end justify-between gap-8">
+              <div className="max-w-xl">
+                <div className="overline-gold mb-3">§ Your Next Rehearsal</div>
+                <h3 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">
+                  {fb.next_rehearsal.focus}
+                  <span className="font-display-italic text-[#a8a094]">
+                    {" "}· {fb.next_rehearsal.interview_type} · {fb.next_rehearsal.difficulty}
+                  </span>
+                </h3>
+                <p className="mt-4 text-[#a8a094] leading-relaxed text-sm">{fb.next_rehearsal.reason}</p>
+              </div>
+              <Link
+                to="/interview/new"
+                className="inline-flex items-center gap-2 border border-[#c68b73] text-[#f2ece0] px-8 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500"
+                data-testid="start-next-rehearsal-btn"
+              >
+                Begin it now <ArrowUpRight size={14} />
+              </Link>
+            </div>
+          </motion.div>
+        )}
 
         {/* Recording panel */}
         {interview.recording && (

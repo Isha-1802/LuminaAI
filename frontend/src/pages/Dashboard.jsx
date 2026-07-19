@@ -8,6 +8,9 @@ import AmbientBackground from "@/components/AmbientBackground";
 import InterviewHeatmap from "@/components/InterviewHeatmap";
 import ProgressAnalytics from "@/components/ProgressAnalytics";
 import PracticeCalendar from "@/components/PracticeCalendar";
+import CountUp from "@/components/CountUp";
+import ResumeVerdict from "@/components/ResumeVerdict";
+import DailyQuestion from "@/components/DailyQuestion";
 import Ripple from "@/components/Ripple";
 import MagneticButton from "@/components/MagneticButton";
 import { Upload, FileText, ArrowUpRight, Loader2, Play, ChevronRight, Sparkles, Calendar } from "lucide-react";
@@ -138,6 +141,16 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* Daily question — the streak keeper */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.04 }}
+          className={`mt-14 p-10 ${GLASS} border-[#c68b73]/25`}
+        >
+          <DailyQuestion onAnswered={refresh} />
+        </motion.div>
+
         {/* Ledger stats */}
         <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4" data-testid="stats-grid">
           {[
@@ -156,9 +169,10 @@ export default function Dashboard() {
             >
               <div className="overline mb-6">{s.label}</div>
               <div className="flex items-baseline gap-1">
-                <span className={`font-display text-4xl md:text-6xl tracking-[-0.03em] ${s.accent ? scoreTone(Number(s.value)) : "text-[#f2ece0]"}`}>
-                  {s.value}
-                </span>
+                <CountUp
+                  value={Number(s.value) || 0}
+                  className={`font-display text-4xl md:text-6xl tracking-[-0.03em] ${s.accent ? scoreTone(Number(s.value)) : "text-[#f2ece0]"}`}
+                />
                 {s.suffix && <span className="text-[#6b6459] text-xs">{s.suffix}</span>}
               </div>
             </motion.div>
@@ -292,6 +306,7 @@ export default function Dashboard() {
                       <div className="text-sm text-[#f2ece0] truncate">{r.original_filename || "Résumé"}</div>
                       <div className="overline mt-1">{fmt(r.created_at)}</div>
                     </div>
+                    <ResumeVerdict resume={r} />
                   </div>
                 ))}
               </div>

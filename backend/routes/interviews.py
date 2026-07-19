@@ -332,8 +332,12 @@ async def _generate_feedback(interview_id: str, user: dict):
         '  "strengths": [<3 short strings>],\n'
         '  "improvements": [<3 short strings>],\n'
         '  "summary": "<2-3 sentence executive summary>",\n'
-        '  "next_steps": [<3 actionable strings>]\n'
+        '  "next_steps": [<3 actionable strings>],\n'
+        '  "question_analysis": [{"question": "<short paraphrase of each question asked>", "verdict": "strong" | "adequate" | "struggled", "note": "<one sentence: why — e.g. vague answer, missed tradeoffs, rambled, nailed the core idea>"}],\n'
+        '  "action_items": [<3-5 concrete, specific practice tasks with a measurable target, e.g. "Explain a database index tradeoff out loud in under 60 seconds">],\n'
+        '  "next_rehearsal": {"focus": "<single weakest topic to target next>", "interview_type": "technical" | "behavioral" | "coding" | "hr" | "panel", "difficulty": "easy" | "medium" | "hard", "reason": "<one sentence why this setup targets their weakest spot>"}\n'
         "}\n\n"
+        "question_analysis must cover every question the interviewer asked, in order.\n"
         "The heatmap axes are independent of scores: judge leadership from ownership/initiative in answers, "
         "and system_design from architecture/tradeoff reasoning (score low-but-fair if the interview type never touched that axis).\n\n"
         f"Role: {doc['role_title']} | Type: {doc['interview_type']} | Difficulty: {doc['difficulty']}\n\n"
@@ -347,9 +351,13 @@ async def _generate_feedback(interview_id: str, user: dict):
         "heatmap": default_heatmap,
         "strengths": [], "improvements": ["Feedback parsing failed. Please retry."],
         "summary": raw[:500], "next_steps": [],
+        "question_analysis": [], "action_items": [], "next_rehearsal": None,
     }
     if not feedback.get("heatmap"):
         feedback["heatmap"] = default_heatmap
+    feedback.setdefault("question_analysis", [])
+    feedback.setdefault("action_items", [])
+    feedback.setdefault("next_rehearsal", None)
 
     speech_analytics = compute_speech_analytics(doc["messages"])
 

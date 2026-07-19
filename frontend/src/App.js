@@ -20,6 +20,7 @@ import SharedReport from "@/pages/SharedReport";
 import RoomDetail from "@/pages/RoomDetail";
 import PracticeHub from "@/pages/PracticeHub";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CoachChat from "@/components/CoachChat";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -135,6 +136,7 @@ function App() {
         <AuthProvider>
           <ScrollToTop />
           <AppRouter />
+          <CoachChat />
           <Toaster
             theme="dark"
             position="top-right"

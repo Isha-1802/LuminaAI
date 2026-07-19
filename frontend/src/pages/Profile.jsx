@@ -11,6 +11,17 @@ import DevQuote from "@/components/DevQuote";
 import { Loader2, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
+const PROFILE_BG = "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2luZW1hdGljJTIwb2ZmaWNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzgzMTg0OTI3fDA&ixlib=rb-4.1.0&q=85";
+
+function ProfileBackdrop() {
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
+      <div className="absolute inset-0 bg-cover bg-center opacity-[0.14] bg-drift" style={{ backgroundImage: `url(${PROFILE_BG})` }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09]/70 via-[#0c0a09]/90 to-[#0c0a09]" />
+    </div>
+  );
+}
+
 export default function Profile() {
   const { user, setUser } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -120,6 +131,7 @@ export default function Profile() {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
         <Navbar />
+        <ProfileBackdrop />
         <AmbientBackground variant="warm" />
         <div className="pt-[112px] max-w-[900px] mx-auto px-6 md:px-12 pb-24 relative z-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
@@ -140,8 +152,9 @@ export default function Profile() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
       <Navbar />
+      <ProfileBackdrop />
       <AmbientBackground variant="warm" />
-      <div className="pt-[112px] max-w-[800px] mx-auto px-6 md:px-12 pb-24">
+      <div className="pt-[112px] max-w-[800px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div className="overline-gold mb-4">§ Settings</div>
           <h1 className="font-display text-4xl md:text-5xl tracking-tight mb-10">Your Profile</h1>

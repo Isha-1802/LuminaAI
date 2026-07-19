@@ -92,3 +92,6 @@ credentials.json
 
 # Claude Code local config
 .claude/
+
+# Uploaded user files (resumes, recordings) — never commit
+uploads/

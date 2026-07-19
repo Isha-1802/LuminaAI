@@ -45,7 +45,11 @@ async def stats_summary(user: dict = Depends(get_current_user)):
 
 @router.get("/activity")
 async def stats_activity(user: dict = Depends(get_current_user)):
-    """Daily practice activity for the calendar heatmap + streaks."""
+    """Daily practice activity for the calendar heatmap + streaks.
+
+    A day counts as practiced if the user did an interview OR answered
+    the daily question.
+    """
     docs = await db.interviews.find(
         {"user_id": user["user_id"]},
         {"_id": 0, "created_at": 1},
@@ -54,6 +58,15 @@ async def stats_activity(user: dict = Depends(get_current_user)):
     counts: dict = {}
     for d in docs:
         day = (d.get("created_at") or "")[:10]
+        if day:
+            counts[day] = counts.get(day, 0) + 1
+
+    daily_docs = await db.daily_questions.find(
+        {"user_id": user["user_id"], "answered": True},
+        {"_id": 0, "date": 1},
+    ).to_list(2000)
+    for d in daily_docs:
+        day = d.get("date")
         if day:
             counts[day] = counts.get(day, 0) + 1
 

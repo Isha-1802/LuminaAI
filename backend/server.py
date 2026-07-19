@@ -19,12 +19,14 @@ from routes.bookings import router as bookings_router
 from routes.chat import router as chat_router
 from routes.reviews import router as reviews_router
 from routes.notifications import router as notifications_router
+from routes.daily import router as daily_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 app = FastAPI(title="Lumina AI Interview")
 
 app.include_router(auth_router)
+app.include_router(daily_router)
 app.include_router(resumes_router)
 app.include_router(interviews_router)
 app.include_router(stats_router)

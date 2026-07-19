@@ -9,6 +9,7 @@ import TextReveal from "@/components/TextReveal";
 import LiveInterviewDemo from "@/components/LiveInterviewDemo";
 import FaqAccordion from "@/components/FaqAccordion";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
 
 const fadeUp = {
   initial: { opacity: 0, y: 32 },
@@ -57,6 +58,8 @@ export default function Landing() {
   const heroRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
   const nav = useNavigate();
+  const { user } = useAuth();
+  const homePath = user ? (user.role === "interviewer" ? "/console" : "/dashboard") : null;
 
   useEffect(() => {
     const onMove = (e) => {
@@ -133,12 +136,12 @@ export default function Landing() {
               <div className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <MagneticButton>
                   <Link
-                    to="/auth?mode=signup"
+                    to={homePath || "/auth?mode=signup"}
                     className="group inline-flex items-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-8 py-4 text-[11px] uppercase tracking-[0.32em] font-medium hover:bg-[#c68b73] transition-all duration-500"
                     data-testid="hero-start-btn"
                   >
                     <Play size={11} className="fill-[#0c0a09]" />
-                    Login / Sign Up
+                    {user ? "Enter the Atelier" : "Login / Sign Up"}
                     <ArrowUpRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500" />
                   </Link>
                 </MagneticButton>
@@ -618,17 +621,19 @@ export default function Landing() {
               </div>
               <MagneticButton>
                 <Link
-                  to="/auth?mode=signup"
+                  to={homePath || "/auth?mode=signup"}
                   className="group inline-flex items-center justify-between gap-3 border border-[#c68b73] text-[#f2ece0] px-8 py-5 hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500 w-full"
                   data-testid="cta-signup-btn"
                 >
-                  <span className="text-[11px] uppercase tracking-[0.32em] font-medium">Sign Up</span>
+                  <span className="text-[11px] uppercase tracking-[0.32em] font-medium">{user ? "Enter the Atelier" : "Sign Up"}</span>
                   <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </MagneticButton>
-              <Link to="/auth?mode=login" className="overline hover:text-[#c68b73] transition-colors" data-testid="cta-login-link">
-                Already have an account? Login →
-              </Link>
+              {!user && (
+                <Link to="/auth?mode=login" className="overline hover:text-[#c68b73] transition-colors" data-testid="cta-login-link">
+                  Already have an account? Login →
+                </Link>
+              )}
             </div>
           </motion.div>
         </div>
