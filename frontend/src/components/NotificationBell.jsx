@@ -75,7 +75,7 @@ export default function NotificationBell() {
       >
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#c9a96e] rounded-full flex items-center justify-center text-[9px] text-[#0c0a09] font-bold">
+          <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#c68b73] rounded-full flex items-center justify-center text-[9px] text-[#0c0a09] font-bold">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -93,7 +93,7 @@ export default function NotificationBell() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#f2ece0]/10">
               <div className="flex items-center gap-2 text-[#f2ece0] font-medium text-sm">
-                <Bell size={14} className="text-[#c9a96e]" />
+                <Bell size={14} className="text-[#c68b73]" />
                 Notifications
               </div>
               <button onClick={() => setOpen(false)} className="text-[#6b6459] hover:text-[#f2ece0]">
@@ -112,13 +112,13 @@ export default function NotificationBell() {
                   <button
                     key={n.notification_id}
                     onClick={() => handleClick(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-[#f2ece0]/[0.06] hover:bg-[#f2ece0]/[0.04] transition-colors ${!n.read ? "bg-[#c9a96e]/5" : ""}`}
+                    className={`w-full text-left px-4 py-3 border-b border-[#f2ece0]/[0.06] hover:bg-[#f2ece0]/[0.04] transition-colors ${!n.read ? "bg-[#c68b73]/5" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className={`text-sm font-medium ${n.read ? "text-[#a8a094]" : "text-[#f2ece0]"}`}>
                           {n.title}
-                          {!n.read && <span className="inline-block w-1.5 h-1.5 bg-[#c9a96e] rounded-full ml-2 mb-0.5" />}
+                          {!n.read && <span className="inline-block w-1.5 h-1.5 bg-[#c68b73] rounded-full ml-2 mb-0.5" />}
                         </div>
                         <div className="text-xs text-[#6b6459] mt-0.5 leading-relaxed">{n.body}</div>
                       </div>

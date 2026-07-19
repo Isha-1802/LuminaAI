@@ -30,11 +30,11 @@ const Bubble = ({ item, active }) => {
   return (
     <div className={`flex ${isCounsel ? "justify-start" : "justify-end"}`}>
       {isCounsel ? (
-        <div className="max-w-[85%] border-l border-[#c9a96e]/50 pl-5 py-1">
+        <div className="max-w-[85%] border-l border-[#c68b73]/50 pl-5 py-1">
           <div className="overline-gold text-[9px] mb-2">The Counsel</div>
           <div className="font-display text-lg md:text-xl leading-snug text-[#f2ece0]">
             {typed}
-            <span className="inline-block w-2 h-4 bg-[#c9a96e] ml-1 align-middle animate-pulse" />
+            <span className="inline-block w-2 h-4 bg-[#c68b73] ml-1 align-middle animate-pulse" />
           </div>
         </div>
       ) : (
@@ -60,12 +60,12 @@ export default function LiveInterviewDemo() {
       <div className="flex items-center justify-between border-b border-[#f2ece0]/[0.08] px-6 py-3">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#5a1a24]" />
-          <span className="w-2 h-2 rounded-full bg-[#c9a96e]" />
+          <span className="w-2 h-2 rounded-full bg-[#c68b73]" />
           <span className="w-2 h-2 rounded-full bg-[#3a4a3d]" />
         </div>
         <div className="overline-gold text-[9px]">SESSION · SR ENG · STRIPE · TECHNICAL · MEDIUM</div>
         <div className="overline text-[9px]">
-          <span className="w-1.5 h-1.5 inline-block bg-[#c9a96e] rounded-full mr-2 animate-pulse" /> LIVE
+          <span className="w-1.5 h-1.5 inline-block bg-[#c68b73] rounded-full mr-2 animate-pulse" /> LIVE
         </div>
       </div>
 
@@ -96,7 +96,7 @@ export default function LiveInterviewDemo() {
         ].map((s) => (
           <div key={s.l} className="text-center">
             <div className="overline text-[9px]">{s.l}</div>
-            <div className="font-display text-lg text-[#c9a96e] mt-0.5">{s.v}</div>
+            <div className="font-display text-lg text-[#c68b73] mt-0.5">{s.v}</div>
           </div>
         ))}
       </div>

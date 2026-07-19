@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, LayoutDashboard, Search, User } from "lucide-react";
+import { LogOut, LayoutDashboard, Sparkles, User } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 export default function Navbar() {
@@ -8,21 +9,28 @@ export default function Navbar() {
   const nav = useNavigate();
   const location = useLocation();
   const onLanding = location.pathname === "/";
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
 
   return (
     <header
       className="fixed top-0 left-0 right-0 z-40 backdrop-blur-xl bg-[#0c0a09]/70 border-b border-[#f2ece0]/[0.06]"
       data-testid="app-navbar"
     >
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-gradient-to-r from-[#c68b73] via-[#e8b8a4] to-[#c68b73]"
+        style={{ scaleX: progress }}
+        data-testid="scroll-progress-bar"
+      />
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 h-[68px] flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group" data-testid="brand-link">
           <div className="relative">
-            <div className="w-2 h-2 rounded-full bg-[#c9a96e]" />
-            <div className="absolute inset-0 w-2 h-2 rounded-full bg-[#c9a96e] blur-md" />
+            <div className="w-2 h-2 rounded-full bg-[#c68b73]" />
+            <div className="absolute inset-0 w-2 h-2 rounded-full bg-[#c68b73] blur-md" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-display italic text-[22px] tracking-tight text-[#f2ece0]">Lumina</span>
-            <span className="overline text-[#c9a96e]/70">Nº 01</span>
+            <span className="overline text-[#c68b73]/70">Nº 01</span>
           </div>
         </Link>
 
@@ -33,17 +41,17 @@ export default function Navbar() {
             <>
               {(user.role === "candidate" || user.role === "interviewee") && (
                 <button
-                  onClick={() => nav("/experts")}
-                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors"
-                  data-testid="nav-experts-btn"
+                  onClick={() => nav("/practice")}
+                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c68b73] transition-colors"
+                  data-testid="nav-practice-btn"
                 >
-                  <Search size={12} /> Find Interviewers
+                  <Sparkles size={12} /> Rehearsal Room
                 </button>
               )}
               {user.role === "interviewer" ? (
                 <button
                   onClick={() => nav("/console")}
-                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors"
+                  className="hidden sm:inline-flex items-center gap-2 overline hover:text-[#c68b73] transition-colors"
                   data-testid="nav-console-btn"
                 >
                   <LayoutDashboard size={12} /> Interviewer Console
@@ -66,7 +74,7 @@ export default function Navbar() {
                   <img 
                     src={user.picture.startsWith("http") ? user.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${user.picture}`} 
                     alt="Profile" 
-                    className="w-5 h-5 rounded-full object-cover border border-[#c9a96e]/30" 
+                    className="w-5 h-5 rounded-full object-cover border border-[#c68b73]/30" 
                   />
                 ) : (
                   <User size={12} /> 
@@ -76,7 +84,7 @@ export default function Navbar() {
               <NotificationBell />
               <button
                 onClick={async () => { await logout(); nav("/"); }}
-                className="group relative inline-flex items-center gap-2 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#f2ece0] border border-[#f2ece0]/15 hover:border-[#c9a96e]/60 transition-all"
+                className="group relative inline-flex items-center gap-2 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#f2ece0] border border-[#f2ece0]/15 hover:border-[#c68b73]/60 transition-all"
                 data-testid="nav-logout-btn"
               >
                 <LogOut size={11} /> Logout
@@ -85,7 +93,7 @@ export default function Navbar() {
           ) : (
             <Link
                 to="/auth?mode=login"
-                className="group relative inline-flex items-center gap-2 px-6 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#0c0a09] bg-[#f2ece0] hover:bg-[#c9a96e] transition-all"
+                className="group relative inline-flex items-center gap-2 px-6 py-2.5 text-[11px] uppercase tracking-[0.28em] text-[#0c0a09] bg-[#f2ece0] hover:bg-[#c68b73] transition-all"
                 data-testid="nav-signup-btn"
               >
                 Login / Sign Up

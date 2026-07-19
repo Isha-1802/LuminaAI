@@ -5,6 +5,10 @@ import { ArrowRight, Mail, Lock, User, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import Ripple from "@/components/Ripple";
+import MagneticButton from "@/components/MagneticButton";
+
+const AUTH_BG = "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2luZW1hdGljJTIwb2ZmaWNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzgzMTg0OTI3fDA&ixlib=rb-4.1.0&q=85";
 
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 export default function AuthPage() {
@@ -52,18 +56,24 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0] flex" data-testid="auth-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0] flex" data-testid="auth-page">
       {/* Left — editorial */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden border-r border-[#f2ece0]/[0.06]">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.28] bg-drift"
+          style={{ backgroundImage: `url(${AUTH_BG})` }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09]/40 via-[#0c0a09]/70 to-[#0c0a09]" aria-hidden="true" />
         <div className="absolute inset-0">
-          <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-[#c9a96e]/[0.09] blur-[130px]" />
+          <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-[#c68b73]/[0.09] blur-[130px]" />
           <div className="absolute bottom-0 -right-40 w-[520px] h-[520px] rounded-full bg-[#5a1a24]/[0.10] blur-[140px]" />
         </div>
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-20 w-full">
           <Link to="/" className="flex items-center gap-3" data-testid="auth-brand">
-            <div className="w-2 h-2 rounded-full bg-[#c9a96e]" />
+            <div className="w-2 h-2 rounded-full bg-[#c68b73]" />
             <span className="font-display italic text-3xl">Lumina</span>
-            <span className="overline text-[#c9a96e]/70 ml-2">Nº 01</span>
+            <span className="overline text-[#c68b73]/70 ml-2">Nº 01</span>
           </Link>
 
           <div>
@@ -77,7 +87,7 @@ export default function AuthPage() {
               Lumina is not a coaching app. It is a house of counsel — cinematic, precise, and privately yours. Enter to begin the rehearsal.
             </p>
             <div className="mt-12 flex items-center gap-4">
-              <div className="w-12 h-px bg-[#c9a96e]" />
+              <div className="w-12 h-px bg-[#c68b73]" />
               <span className="overline">Est. MMXXVI · San Francisco</span>
             </div>
           </div>
@@ -98,7 +108,7 @@ export default function AuthPage() {
           className="w-full max-w-[420px]"
         >
           <div className="lg:hidden mb-10 flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-[#c9a96e]" />
+            <div className="w-2 h-2 rounded-full bg-[#c68b73]" />
             <span className="font-display italic text-2xl">Lumina</span>
           </div>
 
@@ -128,13 +138,15 @@ export default function AuthPage() {
             ))}
           </div>
 
-          <button
-            onClick={onGoogle}
-            className="w-full inline-flex items-center justify-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-6 py-4 text-[11px] uppercase tracking-[0.28em] font-medium hover:bg-[#c9a96e] transition-all duration-500"
-            data-testid="google-auth-btn"
-          >
-            <FcGoogle size={20} /> Continue with Google
-          </button>
+          <Ripple className="block w-full">
+            <button
+              onClick={onGoogle}
+              className="w-full inline-flex items-center justify-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-6 py-4 text-[11px] uppercase tracking-[0.28em] font-medium hover:bg-[#c68b73] transition-all duration-500"
+              data-testid="google-auth-btn"
+            >
+              <FcGoogle size={20} /> Continue with Google
+            </button>
+          </Ripple>
 
           <div className="my-8 flex items-center gap-4">
             <div className="flex-1 h-px bg-[#f2ece0]/[0.1]" />
@@ -152,7 +164,7 @@ export default function AuthPage() {
                   placeholder="Full name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c9a96e] transition-colors"
+                  className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c68b73] transition-colors"
                   data-testid="signup-name-input"
                 />
               </div>
@@ -165,7 +177,7 @@ export default function AuthPage() {
                 placeholder="you@work.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c9a96e] transition-colors"
+                className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c68b73] transition-colors"
                 data-testid="auth-email-input"
               />
             </div>
@@ -178,38 +190,40 @@ export default function AuthPage() {
                 minLength={6}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c9a96e] transition-colors"
+                className="w-full bg-transparent border border-[#f2ece0]/[0.1] pl-12 pr-4 py-4 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c68b73] transition-colors"
                 data-testid="auth-password-input"
               />
             </div>
 
 
 
-            <button
-              type="submit"
-              disabled={busy}
-              className="mt-6 w-full inline-flex items-center justify-center gap-3 border border-[#c9a96e] text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] font-medium hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500 disabled:opacity-50"
-              data-testid="auth-submit-btn"
-            >
-              {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-              {mode === "signup" ? "Enter the atelier" : "Continue"}
-              <ArrowRight size={14} />
-            </button>
+            <Ripple className="block w-full mt-6">
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full inline-flex items-center justify-center gap-3 border border-[#c68b73] text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] font-medium hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500 disabled:opacity-50"
+                data-testid="auth-submit-btn"
+              >
+                {busy ? <Loader2 size={14} className="animate-spin" /> : null}
+                {mode === "signup" ? "Enter the atelier" : "Continue"}
+                <ArrowRight size={14} />
+              </button>
+            </Ripple>
           </form>
 
           <div className="mt-10 text-sm text-[#a8a094] text-center">
             {mode === "signup" ? (
               <>Already invited?{" "}
-                <button className="text-[#c9a96e] hover:text-[#f2ece0] transition-colors underline-offset-4 hover:underline" onClick={() => setMode("login")} data-testid="switch-to-login">Enter</button>
+                <button className="text-[#c68b73] hover:text-[#f2ece0] transition-colors underline-offset-4 hover:underline" onClick={() => setMode("login")} data-testid="switch-to-login">Enter</button>
               </>
             ) : (
               <>New to Lumina?{" "}
-                <button className="text-[#c9a96e] hover:text-[#f2ece0] transition-colors underline-offset-4 hover:underline" onClick={() => setMode("signup")} data-testid="switch-to-signup">Request invitation</button>
+                <button className="text-[#c68b73] hover:text-[#f2ece0] transition-colors underline-offset-4 hover:underline" onClick={() => setMode("signup")} data-testid="switch-to-signup">Request invitation</button>
               </>
             )}
           </div>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -12,13 +12,13 @@
     --ivory: #f2ece0;
     --ivory-mute: #a8a094;
     --ivory-faint: #6b6459;
-    --gold: #c9a96e;
-    --gold-soft: #b0904d;
-    --gold-faint: #7a6640;
+    --gold: #c68b73;
+    --gold-soft: #a86f5c;
+    --gold-faint: #7a4f42;
     --oxblood: #5a1a24;
     --hairline: rgba(242, 236, 224, 0.08);
     --hairline-strong: rgba(242, 236, 224, 0.16);
-    --hairline-gold: rgba(201, 169, 110, 0.24);
+    --hairline-gold: rgba(198, 139, 115, 0.24);
 }
 
 html,
@@ -96,6 +96,63 @@ pre,
     color: var(--gold);
 }
 
+/* Slow cinematic drift for background textures (ken-burns) */
+@keyframes slow-drift {
+    0% {
+        transform: scale(1) translate(0, 0);
+    }
+    50% {
+        transform: scale(1.09) translate(-1.5%, -2%);
+    }
+    100% {
+        transform: scale(1) translate(0, 0);
+    }
+}
+.bg-drift {
+    animation: slow-drift 28s ease-in-out infinite;
+    will-change: transform;
+}
+
+/* Dark neumorphism — soft extruded / pressed surfaces */
+.neo-card {
+    background: linear-gradient(145deg, #171210, #0e0b09);
+    border-radius: 28px;
+    box-shadow:
+        10px 10px 26px rgba(0, 0, 0, 0.65),
+        -7px -7px 18px rgba(242, 236, 224, 0.035),
+        inset 0 0 0 1px rgba(242, 236, 224, 0.04);
+}
+
+.neo-inset {
+    background: linear-gradient(145deg, #0d0a08, #151110);
+    border-radius: 20px;
+    box-shadow:
+        inset 7px 7px 16px rgba(0, 0, 0, 0.7),
+        inset -5px -5px 12px rgba(242, 236, 224, 0.03);
+}
+
+.neo-pill {
+    background: linear-gradient(145deg, #171210, #0e0b09);
+    border-radius: 999px;
+    box-shadow:
+        6px 6px 14px rgba(0, 0, 0, 0.6),
+        -4px -4px 10px rgba(242, 236, 224, 0.035);
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+.neo-pill:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        8px 8px 18px rgba(0, 0, 0, 0.65),
+        -5px -5px 12px rgba(242, 236, 224, 0.05),
+        0 0 24px rgba(198, 139, 115, 0.12);
+}
+.neo-pill:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 5px 5px 12px rgba(0, 0, 0, 0.65),
+        inset -3px -3px 8px rgba(242, 236, 224, 0.03);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 5px;
@@ -105,15 +162,15 @@ pre,
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(201, 169, 110, 0.25);
+    background: rgba(198, 139, 115, 0.25);
     border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 169, 110, 0.5);
+    background: rgba(198, 139, 115, 0.5);
 }
 
 ::selection {
-    background: rgba(201, 169, 110, 0.35);
+    background: rgba(198, 139, 115, 0.35);
     color: var(--ivory);
 }
 
@@ -197,7 +254,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 999px;
     margin-top: -6px;
     box-shadow: 0 0 0 4px rgba(12, 10, 9, 1),
-        0 0 20px rgba(201, 169, 110, 0.35);
+        0 0 20px rgba(198, 139, 115, 0.35);
 }
 
 /* Marquee ticker */
@@ -227,7 +284,7 @@ input[type="range"]::-webkit-slider-thumb {
     background: linear-gradient(
         90deg,
         var(--gold-soft) 0%,
-        #e8d5a8 50%,
+        #e8b8a4 50%,
         var(--gold-soft) 100%
     );
     background-size: 200% auto;

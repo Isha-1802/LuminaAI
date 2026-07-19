@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import AmbientBackground from "@/components/AmbientBackground";
+import Ripple from "@/components/Ripple";
+import MagneticButton from "@/components/MagneticButton";
 import { ArrowUpRight, Loader2, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -114,8 +117,9 @@ export default function NewInterview() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="new-interview-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="new-interview-page">
       <Navbar />
+      <AmbientBackground />
       <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="border-b border-[#f2ece0]/[0.08] pb-10 mb-14">
           <div className="flex items-center justify-between mb-6">
@@ -142,7 +146,7 @@ export default function NewInterview() {
               <input type="text" placeholder="e.g. Senior Product Designer at Airbnb"
                 value={form.role_title}
                 onChange={(e) => setForm({ ...form, role_title: e.target.value })}
-                className="w-full bg-transparent border-b border-[#f2ece0]/[0.15] pb-4 pt-2 font-display text-3xl md:text-4xl tracking-tight text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c9a96e]"
+                className="w-full bg-transparent border-b border-[#f2ece0]/[0.15] pb-4 pt-2 font-display text-3xl md:text-4xl tracking-tight text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c68b73]"
                 data-testid="role-title-input" />
             </div>
           </div>
@@ -201,7 +205,7 @@ export default function NewInterview() {
                   }`}
                   data-testid={`type-${t.id}`}
                 >
-                  <div className={`overline ${form.interview_type === t.id ? "text-[#0c0a09]/60" : "text-[#c9a96e]"}`}>0{i + 1}</div>
+                  <div className={`overline ${form.interview_type === t.id ? "text-[#0c0a09]/60" : "text-[#c68b73]"}`}>0{i + 1}</div>
                   <div className="font-display text-2xl md:text-3xl tracking-tight mt-3">{t.label}</div>
                   <div className={`text-xs mt-2 leading-relaxed ${form.interview_type === t.id ? "text-[#0c0a09]/70" : "text-[#a8a094]"}`}>{t.d}</div>
                 </button>
@@ -220,23 +224,23 @@ export default function NewInterview() {
               <div className="lg:col-span-8 space-y-3">
                 {(form.panel_config || []).map((p, i) => (
                   <div key={i} className="grid grid-cols-12 gap-3 items-center border border-[#f2ece0]/[0.08] p-4" data-testid={`panelist-${i}`}>
-                    <div className="col-span-1 font-display italic text-[#c9a96e] text-2xl">0{i + 1}</div>
+                    <div className="col-span-1 font-display italic text-[#c68b73] text-2xl">0{i + 1}</div>
                     <input value={p.name} onChange={(e) => updatePanel(i, "name", e.target.value)}
                       placeholder="Name" data-testid={`panelist-name-${i}`}
-                      className="col-span-3 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c9a96e]" />
+                      className="col-span-3 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c68b73]" />
                     <input value={p.role} onChange={(e) => updatePanel(i, "role", e.target.value)}
                       placeholder="Role (e.g. Engineering Manager)" data-testid={`panelist-role-${i}`}
-                      className="col-span-4 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c9a96e]" />
+                      className="col-span-4 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c68b73]" />
                     <input value={p.style || ""} onChange={(e) => updatePanel(i, "style", e.target.value)}
                       placeholder="Style" data-testid={`panelist-style-${i}`}
-                      className="col-span-3 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#a8a094] focus:outline-none focus:border-[#c9a96e]" />
+                      className="col-span-3 bg-transparent border-b border-[#f2ece0]/[0.15] pb-1 text-sm text-[#a8a094] focus:outline-none focus:border-[#c68b73]" />
                     <button onClick={() => removePanelist(i)} className="col-span-1 text-[#8a5052] hover:text-[#f2ece0]" data-testid={`remove-panelist-${i}`}>
                       <Trash2 size={12} />
                     </button>
                   </div>
                 ))}
                 {(form.panel_config || []).length < 4 && (
-                  <button onClick={addPanelist} className="inline-flex items-center gap-2 border border-[#c9a96e]/40 px-4 py-2 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all" data-testid="add-panelist">
+                  <button onClick={addPanelist} className="inline-flex items-center gap-2 border border-[#c68b73]/40 px-4 py-2 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all" data-testid="add-panelist">
                     <Plus size={11} /> Add counsel
                   </button>
                 )}
@@ -277,7 +281,7 @@ export default function NewInterview() {
                     form.model_id === m.id ? "bg-[#f2ece0] text-[#0c0a09]" : "hover:bg-[#f2ece0]/[0.02]"
                   } ${i > 0 ? "border-t border-[#f2ece0]/[0.08]" : ""}`}
                   data-testid={`model-${m.id}`}>
-                  <div className={`col-span-1 font-display italic text-2xl text-[#c9a96e]`}>0{i + 1}</div>
+                  <div className={`col-span-1 font-display italic text-2xl text-[#c68b73]`}>0{i + 1}</div>
                   <div className="col-span-6">
                     <div className="font-display text-2xl tracking-tight">{m.label}</div>
                     <div className={`overline ${form.model_id === m.id ? "text-[#0c0a09]/50" : ""}`}>{m.family}</div>
@@ -301,7 +305,7 @@ export default function NewInterview() {
               </div>
               <div className="lg:col-span-8">
                 <select value={form.resume_id} onChange={(e) => setForm({ ...form, resume_id: e.target.value })}
-                  className="w-full bg-transparent border border-[#f2ece0]/[0.15] px-5 py-4 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c9a96e]"
+                  className="w-full bg-transparent border border-[#f2ece0]/[0.15] px-5 py-4 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c68b73]"
                   data-testid="resume-select">
                   <option value="" className="bg-[#0c0a09]">— None (generic interview) —</option>
                   {resumes.map((r) => <option key={r.resume_id} value={r.resume_id} className="bg-[#0c0a09]">{r.original_filename}</option>)}
@@ -318,7 +322,7 @@ export default function NewInterview() {
             </div>
             <div className="lg:col-span-8">
               <div className="flex items-baseline gap-6 mb-6">
-                <span className="font-display text-7xl tracking-[-0.03em] text-[#c9a96e]">{form.num_questions}</span>
+                <span className="font-display text-7xl tracking-[-0.03em] text-[#c68b73]">{form.num_questions}</span>
                 <span className="overline">Questions</span>
               </div>
               <input type="range" min={3} max={12} step={1} value={form.num_questions}
@@ -329,16 +333,20 @@ export default function NewInterview() {
 
           {/* Begin */}
           <div className="border-t border-[#f2ece0]/[0.06] pt-16">
-            <button onClick={start} disabled={busy}
-              className="group inline-flex items-center gap-4 border border-[#c9a96e] text-[#f2ece0] px-10 py-5 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500 disabled:opacity-60"
-              data-testid="start-interview-btn">
-              {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-              {form.interview_type === "panel" ? "Enter the roundtable" : "Enter the room"}
-              <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-            </button>
+            <MagneticButton>
+              <Ripple className="block">
+                <button onClick={start} disabled={busy}
+                  className="group inline-flex items-center gap-4 border border-[#c68b73] text-[#f2ece0] px-10 py-5 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500 disabled:opacity-60"
+                  data-testid="start-interview-btn">
+                  {busy ? <Loader2 size={14} className="animate-spin" /> : null}
+                  {form.interview_type === "panel" ? "Enter the roundtable" : "Enter the room"}
+                  <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </Ripple>
+            </MagneticButton>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

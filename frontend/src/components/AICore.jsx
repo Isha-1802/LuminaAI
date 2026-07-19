@@ -3,8 +3,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles, Environment, Line, Trail, Instances, Instance } from "@react-three/drei";
 import * as THREE from "three";
 
-const GOLD = "#c9a96e";
-const GOLD_BRIGHT = "#e8d5a8";
+const GOLD = "#c68b73";
+const GOLD_BRIGHT = "#e8b8a4";
 const IVORY = "#f2ece0";
 const OXBLOOD = "#5a1a24";
 
@@ -13,8 +13,11 @@ const AICore = ({ mouse }) => {
   const outer = useRef();
   const inner = useRef();
   const wire = useRef();
+  const innerMat = useRef();
+  const haloMat = useRef();
+  const coreLight = useRef();
 
-  useFrame((_, dt) => {
+  useFrame(({ clock }, dt) => {
     if (outer.current) {
       outer.current.rotation.x += dt * 0.08;
       outer.current.rotation.y += dt * 0.14;
@@ -27,12 +30,22 @@ const AICore = ({ mouse }) => {
       wire.current.rotation.y -= dt * 0.05;
       wire.current.rotation.x += dt * 0.03;
     }
-    // Mouse parallax on whole group
+    // Mouse parallax on whole group + proximity-driven reactivity
+    let proximity = 0;
     if (mouse?.current && outer.current?.parent) {
       const g = outer.current.parent;
       g.rotation.y = THREE.MathUtils.lerp(g.rotation.y, mouse.current.x * 0.35, 0.05);
       g.rotation.x = THREE.MathUtils.lerp(g.rotation.x, -mouse.current.y * 0.25, 0.05);
+      const dist = Math.hypot(mouse.current.x, mouse.current.y);
+      proximity = THREE.MathUtils.clamp(1 - dist, 0, 1);
     }
+
+    // Slow breathing pulse layered with cursor reactivity
+    const breathe = 0.5 + Math.sin(clock.getElapsedTime() * 0.6) * 0.5;
+    const glow = 0.5 + breathe * 0.25 + proximity * 0.55;
+    if (innerMat.current) innerMat.current.emissiveIntensity = glow;
+    if (coreLight.current) coreLight.current.intensity = 2.0 + breathe * 0.8 + proximity * 1.6;
+    if (haloMat.current) haloMat.current.opacity = 0.04 + proximity * 0.05 + breathe * 0.015;
   });
 
   return (
@@ -49,10 +62,11 @@ const AICore = ({ mouse }) => {
         <meshBasicMaterial color={IVORY} wireframe transparent opacity={0.28} />
       </mesh>
 
-      {/* Inner emissive core */}
+      {/* Inner emissive core — reacts to cursor proximity + breathes on its own */}
       <mesh ref={inner} scale={0.85}>
         <icosahedronGeometry args={[1, 3]} />
         <meshStandardMaterial
+          ref={innerMat}
           color={GOLD}
           emissive={new THREE.Color(GOLD_BRIGHT)}
           emissiveIntensity={0.55}
@@ -61,10 +75,13 @@ const AICore = ({ mouse }) => {
         />
       </mesh>
 
+      {/* Reactive core light — brightens as the cursor nears */}
+      <pointLight ref={coreLight} position={[0, 0, 0]} intensity={2.2} color={GOLD_BRIGHT} distance={6} />
+
       {/* Halo */}
       <mesh>
         <sphereGeometry args={[2.5, 64, 64]} />
-        <meshBasicMaterial color={OXBLOOD} transparent opacity={0.045} side={THREE.BackSide} />
+        <meshBasicMaterial ref={haloMat} color={OXBLOOD} transparent opacity={0.045} side={THREE.BackSide} />
       </mesh>
     </group>
   );
@@ -75,11 +92,15 @@ const OrbitalRings = () => {
   const g1 = useRef();
   const g2 = useRef();
   const g3 = useRef();
+  const ringGlow = useRef();
 
-  useFrame((_, dt) => {
+  useFrame(({ clock }, dt) => {
     if (g1.current) g1.current.rotation.z += dt * 0.09;
     if (g2.current) g2.current.rotation.z -= dt * 0.06;
     if (g3.current) g3.current.rotation.y += dt * 0.12;
+    if (ringGlow.current) {
+      ringGlow.current.opacity = 0.45 + Math.sin(clock.getElapsedTime() * 0.5) * 0.15;
+    }
   });
 
   return (
@@ -87,7 +108,7 @@ const OrbitalRings = () => {
       <group ref={g1} rotation={[Math.PI / 2.6, 0, 0]}>
         <mesh>
           <torusGeometry args={[2.9, 0.004, 8, 320]} />
-          <meshBasicMaterial color={GOLD} transparent opacity={0.55} />
+          <meshBasicMaterial ref={ringGlow} color={GOLD} transparent opacity={0.55} />
         </mesh>
         <mesh>
           <torusGeometry args={[3.15, 0.002, 8, 320]} />
@@ -235,11 +256,9 @@ export default function AISceneCore({ mouse }) {
           "bottom-0 left-0 border-l border-b",
           "bottom-0 right-0 border-r border-b",
         ].map((cls, i) => (
-          <div key={i} className={`absolute ${cls} border-[#c9a96e]/50 w-8 h-8`} />
+          <div key={i} className={`absolute ${cls} border-[#c68b73]/50 w-8 h-8`} />
         ))}
         <div className="absolute top-2 right-14 overline-gold text-[8px]">// COGNITIVE CORE · v1.4</div>
-        <div className="absolute bottom-2 left-14 overline-gold text-[8px]">LAT 37.7749°N · LON 122.4194°W</div>
-        <div className="absolute bottom-2 right-14 overline text-[8px]">SYS · <span className="text-[#c9a96e]">NOMINAL</span></div>
       </div>
 
       <Canvas dpr={[1, 1.6]} camera={{ position: [0, 0.5, 8], fov: 40 }}>
@@ -247,7 +266,7 @@ export default function AISceneCore({ mouse }) {
         <fog attach="fog" args={["#0c0a09", 8, 20]} />
         <ambientLight intensity={0.35} />
         <pointLight position={[5, 4, 6]} intensity={2.4} color={GOLD_BRIGHT} />
-        <pointLight position={[-6, -3, 4]} intensity={1.4} color="#8a5a2c" />
+        <pointLight position={[-6, -3, 4]} intensity={1.4} color="#7a3d35" />
         <pointLight position={[0, 6, -6]} intensity={0.9} color={IVORY} />
         <Suspense fallback={null}>
           <group>

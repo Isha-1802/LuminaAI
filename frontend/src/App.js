@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
@@ -16,7 +17,17 @@ import InterviewerBrowse from "@/pages/InterviewerBrowse";
 import InterviewerProfile from "@/pages/InterviewerProfile";
 import BookingDetails from "@/pages/BookingDetails";
 import SharedReport from "@/pages/SharedReport";
+import RoomDetail from "@/pages/RoomDetail";
+import PracticeHub from "@/pages/PracticeHub";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
 
 function AppRouter() {
   const location = useLocation();
@@ -30,6 +41,7 @@ function AppRouter() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/share/:token" element={<SharedReport />} />
+      <Route path="/rooms/:roomId" element={<RoomDetail />} />
       
       <Route
         path="/dashboard"
@@ -44,6 +56,14 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/practice"
+        element={
+          <ProtectedRoute>
+            <PracticeHub />
           </ProtectedRoute>
         }
       />
@@ -113,6 +133,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
+          <ScrollToTop />
           <AppRouter />
           <Toaster
             theme="dark"

@@ -5,11 +5,16 @@ import Navbar from "@/components/Navbar";
 import { motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, ArrowUpRight, Loader2, Download, Play, Volume2, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import InterviewHeatmap from "@/components/InterviewHeatmap";
+import SpeechAnalyticsPanel from "@/components/SpeechAnalyticsPanel";
+import AmbientBackground from "@/components/AmbientBackground";
 
-const scoreTone = (s) => (s >= 80 ? "text-[#c9a96e]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
+const REPORT_BG = "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhcmslMjBnbGFzcyUyMHRleHR1cmV8ZW58MHx8fHwxNzgzMTg0OTI4fDA&ixlib=rb-4.1.0&q=85";
+
+const scoreTone = (s) => (s >= 80 ? "text-[#c68b73]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
 const scoreBar = (s) =>
   s >= 80
-    ? "bg-[#c9a96e]"
+    ? "bg-[#c68b73]"
     : s >= 60
     ? "bg-[#f2ece0]"
     : s >= 40
@@ -127,7 +132,7 @@ export default function InterviewReport() {
   if (!interview) {
     return (
       <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0] flex items-center justify-center" data-testid="report-loading">
-        <Loader2 size={22} className="animate-spin text-[#c9a96e]" />
+        <Loader2 size={22} className="animate-spin text-[#c68b73]" />
       </div>
     );
   }
@@ -137,13 +142,18 @@ export default function InterviewReport() {
   const overall = fb.overall_score ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="report-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="report-page">
       <Navbar />
-      <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24">
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 bg-cover bg-center opacity-[0.12] bg-drift" style={{ backgroundImage: `url(${REPORT_BG})` }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09]/75 via-[#0c0a09]/90 to-[#0c0a09]" />
+      </div>
+      <AmbientBackground />
+      <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24 relative z-10">
         {/* Cover */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="border-b border-[#f2ece0]/[0.08] pb-10 mb-16">
           <div className="flex items-center justify-between mb-6">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors" data-testid="back-link">
+            <Link to="/dashboard" className="inline-flex items-center gap-2 overline hover:text-[#c68b73] transition-colors" data-testid="back-link">
               <ArrowLeft size={12} /> Salon
             </Link>
             <div className="overline-gold">§ The Verdict</div>
@@ -204,7 +214,7 @@ export default function InterviewReport() {
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-3">
               <div className="overline-gold">Editor's Letter</div>
-              <div className="font-display italic text-6xl text-[#c9a96e]/60 mt-4">"</div>
+              <div className="font-display italic text-6xl text-[#c68b73]/60 mt-4">"</div>
             </div>
             <p className="lg:col-span-9 font-display text-2xl md:text-3xl leading-[1.4] tracking-[-0.01em] text-[#f2ece0]" data-testid="report-summary">
               {fb.summary || "Feedback will appear here once the rehearsal concludes."}
@@ -219,7 +229,7 @@ export default function InterviewReport() {
             <ul className="space-y-6">
               {(fb.strengths || []).map((s, i) => (
                 <li key={i} className="flex gap-6 pb-6 border-b border-[#f2ece0]/[0.06] last:border-b-0" data-testid={`strength-${i}`}>
-                  <span className="font-display italic text-[#c9a96e] text-3xl leading-none">0{i + 1}</span>
+                  <span className="font-display italic text-[#c68b73] text-3xl leading-none">0{i + 1}</span>
                   <span className="text-[#f2ece0] leading-relaxed pt-1">{s}</span>
                 </li>
               ))}
@@ -232,7 +242,7 @@ export default function InterviewReport() {
             <ul className="space-y-6">
               {(fb.improvements || []).map((s, i) => (
                 <li key={i} className="flex gap-6 pb-6 border-b border-[#f2ece0]/[0.06] last:border-b-0" data-testid={`improvement-${i}`}>
-                  <span className="font-display italic text-[#c9a96e] text-3xl leading-none">0{i + 1}</span>
+                  <span className="font-display italic text-[#c68b73] text-3xl leading-none">0{i + 1}</span>
                   <span className="text-[#f2ece0] leading-relaxed pt-1">{s}</span>
                 </li>
               ))}
@@ -240,6 +250,34 @@ export default function InterviewReport() {
             </ul>
           </motion.div>
         </div>
+
+        {/* Heatmap */}
+        {fb.heatmap && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.36 }}
+            className="border-t border-[#f2ece0]/[0.08] pt-16 mb-16"
+            data-testid="heatmap-panel"
+          >
+            <div className="overline-gold mb-8">§ The Heatmap</div>
+            <InterviewHeatmap data={fb.heatmap} />
+          </motion.div>
+        )}
+
+        {/* Speech & composure analytics */}
+        {interview.speech_analytics && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.38 }}
+            className="border-t border-[#f2ece0]/[0.08] pt-16 mb-16"
+            data-testid="speech-analytics-section"
+          >
+            <div className="overline-gold mb-8">§ Speech &amp; Composure</div>
+            <SpeechAnalyticsPanel data={interview.speech_analytics} />
+          </motion.div>
+        )}
 
         {/* Next moves */}
         <motion.div
@@ -257,7 +295,7 @@ export default function InterviewReport() {
                 className={`p-8 relative ${i > 0 ? "md:border-l border-[#f2ece0]/[0.08]" : ""} ${i > 0 ? "border-t md:border-t-0 border-[#f2ece0]/[0.08]" : ""}`}
                 data-testid={`next-step-${i}`}
               >
-                <div className="font-display italic text-[#c9a96e] text-5xl leading-none mb-6">0{i + 1}</div>
+                <div className="font-display italic text-[#c68b73] text-5xl leading-none mb-6">0{i + 1}</div>
                 <p className="text-[#f2ece0] leading-relaxed text-sm">{s}</p>
               </div>
             ))}
@@ -288,7 +326,7 @@ export default function InterviewReport() {
                   />
                 ) : (
                   <div className="aspect-video bg-[#0c0a09] border border-[#f2ece0]/[0.08] flex items-center justify-center">
-                    <Loader2 size={18} className="animate-spin text-[#c9a96e]" />
+                    <Loader2 size={18} className="animate-spin text-[#c68b73]" />
                   </div>
                 )}
               </div>
@@ -326,7 +364,7 @@ export default function InterviewReport() {
         <div className="border-t border-[#f2ece0]/[0.08] pt-16 flex flex-wrap gap-4 items-center">
           <Link
             to="/interview/new"
-            className="group inline-flex items-center gap-3 border border-[#c9a96e] text-[#f2ece0] px-8 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500"
+            className="group inline-flex items-center gap-3 border border-[#c68b73] text-[#f2ece0] px-8 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500"
             data-testid="another-interview-btn"
           >
             Compose another rehearsal
@@ -335,7 +373,7 @@ export default function InterviewReport() {
           <button
             onClick={downloadPdf}
             disabled={pdfBusy}
-            className="inline-flex items-center gap-2 border border-[#f2ece0]/15 text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] hover:border-[#c9a96e] hover:text-[#c9a96e] transition-all duration-500 disabled:opacity-60"
+            className="inline-flex items-center gap-2 border border-[#f2ece0]/15 text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] hover:border-[#c68b73] hover:text-[#c68b73] transition-all duration-500 disabled:opacity-60"
             data-testid="download-pdf-btn"
           >
             {pdfBusy ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
@@ -343,19 +381,19 @@ export default function InterviewReport() {
           </button>
           {shareToken ? (
             <div className="inline-flex items-center gap-2" data-testid="share-active">
-              <button onClick={copyShare} className="inline-flex items-center gap-2 border border-[#c9a96e] text-[#c9a96e] px-4 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all" data-testid="copy-share-btn">
+              <button onClick={copyShare} className="inline-flex items-center gap-2 border border-[#c68b73] text-[#c68b73] px-4 py-4 text-[11px] uppercase tracking-[0.32em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all" data-testid="copy-share-btn">
                 {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy link"}
               </button>
               <button onClick={revokeShare} className="text-[10px] uppercase tracking-[0.28em] text-[#8a5052] hover:text-[#f2ece0] px-2" data-testid="revoke-share-btn">Revoke</button>
             </div>
           ) : (
-            <button onClick={createShare} className="inline-flex items-center gap-2 border border-[#f2ece0]/15 text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] hover:border-[#c9a96e] hover:text-[#c9a96e] transition-all" data-testid="share-btn">
+            <button onClick={createShare} className="inline-flex items-center gap-2 border border-[#f2ece0]/15 text-[#f2ece0] px-6 py-4 text-[11px] uppercase tracking-[0.32em] hover:border-[#c68b73] hover:text-[#c68b73] transition-all" data-testid="share-btn">
               <Share2 size={12} /> Share to interviewer
             </button>
           )}
           <button
             onClick={speakSummary}
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-[#a8a094] hover:text-[#c9a96e] transition-colors"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-[#a8a094] hover:text-[#c68b73] transition-colors"
             data-testid="speak-summary-btn"
           >
             <Volume2 size={12} /> Hear the letter
@@ -363,7 +401,7 @@ export default function InterviewReport() {
           <button
             onClick={regenerate}
             disabled={busy}
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-[#a8a094] hover:text-[#c9a96e] transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-[#a8a094] hover:text-[#c68b73] transition-colors disabled:opacity-60"
             data-testid="regenerate-btn"
           >
             {busy ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} Rewrite the verdict
@@ -372,6 +410,6 @@ export default function InterviewReport() {
         </div>
         <audio ref={audioRef} className="hidden" />
       </div>
-    </div>
+    </motion.div>
   );
 }

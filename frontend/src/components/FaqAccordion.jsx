@@ -22,13 +22,13 @@ export default function FaqAccordion() {
             className="w-full text-left py-8 grid grid-cols-12 gap-4 items-start group"
             data-testid={`faq-${i}`}
           >
-            <div className="col-span-1 font-display italic text-[#c9a96e] text-2xl">0{i + 1}</div>
-            <div className="col-span-10 font-display text-2xl md:text-3xl tracking-tight text-[#f2ece0] group-hover:text-[#c9a96e] transition-colors">
+            <div className="col-span-1 font-display italic text-[#c68b73] text-2xl">0{i + 1}</div>
+            <div className="col-span-10 font-display text-2xl md:text-3xl tracking-tight text-[#f2ece0] group-hover:text-[#c68b73] transition-colors">
               {item.q}
             </div>
             <div className="col-span-1 flex justify-end pt-2">
               <motion.div animate={{ rotate: open === i ? 45 : 0 }} transition={{ duration: 0.4 }}>
-                <Plus size={20} className="text-[#c9a96e]" />
+                <Plus size={20} className="text-[#c68b73]" />
               </motion.div>
             </div>
           </button>

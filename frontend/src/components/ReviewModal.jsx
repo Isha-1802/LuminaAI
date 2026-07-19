@@ -81,14 +81,14 @@ export default function ReviewModal({ booking, onClose, onSuccess }) {
                   size={32}
                   className={`transition-colors ${
                     star <= (hovered || rating)
-                      ? "fill-[#c9a96e] text-[#c9a96e]"
+                      ? "fill-[#c68b73] text-[#c68b73]"
                       : "text-[#3a3530]"
                   }`}
                 />
               </button>
             ))}
             {rating > 0 && (
-              <span className="ml-2 text-sm text-[#c9a96e] font-medium">
+              <span className="ml-2 text-sm text-[#c68b73] font-medium">
                 {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][rating]}
               </span>
             )}
@@ -103,7 +103,7 @@ export default function ReviewModal({ booking, onClose, onSuccess }) {
               placeholder="Share your experience — this helps other candidates choose the right interviewer."
               rows={4}
               maxLength={1000}
-              className="w-full bg-transparent border border-[#f2ece0]/15 px-4 py-3 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c9a96e] resize-none"
+              className="w-full bg-transparent border border-[#f2ece0]/15 px-4 py-3 text-sm text-[#f2ece0] placeholder-[#6b6459] focus:outline-none focus:border-[#c68b73] resize-none"
             />
             <div className="text-right text-[10px] text-[#6b6459] mt-1">{comment.length}/1000</div>
           </div>
@@ -112,7 +112,7 @@ export default function ReviewModal({ booking, onClose, onSuccess }) {
             <button
               onClick={handleSubmit}
               disabled={busy || rating === 0}
-              className="flex-1 flex items-center justify-center gap-2 border border-[#c9a96e] py-3 text-[10px] uppercase tracking-[0.28em] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 border border-[#c68b73] py-3 text-[10px] uppercase tracking-[0.28em] text-[#c68b73] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all disabled:opacity-50"
             >
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Submit Review

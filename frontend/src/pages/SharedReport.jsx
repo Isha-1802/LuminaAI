@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
+import AmbientBackground from "@/components/AmbientBackground";
 import { ArrowLeft, Loader2, Check, X, Send } from "lucide-react";
 import { toast } from "sonner";
 
-const scoreTone = (s) => (s >= 80 ? "text-[#c9a96e]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
-const scoreBar = (s) => (s >= 80 ? "bg-[#c9a96e]" : s >= 60 ? "bg-[#f2ece0]" : s >= 40 ? "bg-[#e2b48c]" : "bg-[#8a5052]");
+const scoreTone = (s) => (s >= 80 ? "text-[#c68b73]" : s >= 60 ? "text-[#f2ece0]" : s >= 40 ? "text-[#e2b48c]" : "text-[#8a5052]");
+const scoreBar = (s) => (s >= 80 ? "bg-[#c68b73]" : s >= 60 ? "bg-[#f2ece0]" : s >= 40 ? "bg-[#e2b48c]" : "bg-[#8a5052]");
 
 export default function SharedReport() {
   const { token } = useParams();
@@ -51,7 +52,7 @@ export default function SharedReport() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0] flex items-center justify-center">
-        <Loader2 size={22} className="animate-spin text-[#c9a96e]" />
+        <Loader2 size={22} className="animate-spin text-[#c68b73]" />
       </div>
     );
   }
@@ -59,9 +60,9 @@ export default function SharedReport() {
     return (
       <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0] flex items-center justify-center">
         <div className="text-center">
-          <div className="font-display italic text-6xl text-[#c9a96e]/50 mb-4">"</div>
+          <div className="font-display italic text-6xl text-[#c68b73]/50 mb-4">"</div>
           <p className="text-[#a8a094]">This share link has been revoked or never existed.</p>
-          <Link to="/" className="mt-8 inline-flex items-center gap-2 overline hover:text-[#c9a96e]"><ArrowLeft size={12} /> Return</Link>
+          <Link to="/" className="mt-8 inline-flex items-center gap-2 overline hover:text-[#c68b73]"><ArrowLeft size={12} /> Return</Link>
         </div>
       </div>
     );
@@ -72,12 +73,13 @@ export default function SharedReport() {
   const overall = fb.overall_score ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="shared-report-page">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]" data-testid="shared-report-page">
       <Navbar />
+      <AmbientBackground variant="quiet" />
       <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24">
         <div className="border-b border-[#f2ece0]/[0.08] pb-10 mb-16">
           <div className="flex items-center justify-between mb-6">
-            <Link to="/" className="inline-flex items-center gap-2 overline hover:text-[#c9a96e] transition-colors"><ArrowLeft size={12} /> Lumina</Link>
+            <Link to="/" className="inline-flex items-center gap-2 overline hover:text-[#c68b73] transition-colors"><ArrowLeft size={12} /> Lumina</Link>
             <div className="overline-gold">§ Shared Dossier</div>
           </div>
           <h1 className="font-display text-[52px] md:text-[80px] leading-[0.94] tracking-[-0.03em]">
@@ -119,7 +121,7 @@ export default function SharedReport() {
             <div className="grid lg:grid-cols-12 gap-8 items-start">
               <div className="lg:col-span-3">
                 <div className="overline-gold">Editor's Letter</div>
-                <div className="font-display italic text-6xl text-[#c9a96e]/60 mt-4">"</div>
+                <div className="font-display italic text-6xl text-[#c68b73]/60 mt-4">"</div>
               </div>
               <p className="lg:col-span-9 font-display text-2xl md:text-3xl leading-[1.4] tracking-[-0.01em]">
                 {fb.summary}
@@ -135,7 +137,7 @@ export default function SharedReport() {
             <ul className="space-y-6">
               {(fb.strengths || []).map((s, i) => (
                 <li key={i} className="flex gap-6 pb-6 border-b border-[#f2ece0]/[0.06] last:border-b-0">
-                  <span className="font-display italic text-[#c9a96e] text-3xl leading-none">0{i + 1}</span>
+                  <span className="font-display italic text-[#c68b73] text-3xl leading-none">0{i + 1}</span>
                   <span className="leading-relaxed pt-1">{s}</span>
                 </li>
               ))}
@@ -146,7 +148,7 @@ export default function SharedReport() {
             <ul className="space-y-6">
               {(fb.improvements || []).map((s, i) => (
                 <li key={i} className="flex gap-6 pb-6 border-b border-[#f2ece0]/[0.06] last:border-b-0">
-                  <span className="font-display italic text-[#c9a96e] text-3xl leading-none">0{i + 1}</span>
+                  <span className="font-display italic text-[#c68b73] text-3xl leading-none">0{i + 1}</span>
                   <span className="leading-relaxed pt-1">{s}</span>
                 </li>
               ))}
@@ -161,7 +163,7 @@ export default function SharedReport() {
             {(report.messages || []).map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 {m.role === "assistant" ? (
-                  <div className="max-w-[85%] border-l border-[#c9a96e]/40 pl-6 py-1">
+                  <div className="max-w-[85%] border-l border-[#c68b73]/40 pl-6 py-1">
                     <div className="overline-gold mb-2">{m.counsel_name || "The Counsel"}{m.counsel_role ? ` · ${m.counsel_role}` : ""}</div>
                     <div className="font-display text-xl leading-snug whitespace-pre-wrap">{m.content}</div>
                   </div>
@@ -182,7 +184,7 @@ export default function SharedReport() {
             <div className="overline-gold mb-6">§ Your verdict (private)</div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               {[
-                { id: "hire", label: "Hire", icon: Check, cls: "border-[#c9a96e] text-[#c9a96e]" },
+                { id: "hire", label: "Hire", icon: Check, cls: "border-[#c68b73] text-[#c68b73]" },
                 { id: "borderline", label: "Borderline", icon: null, cls: "border-[#f2ece0]/25 text-[#f2ece0]" },
                 { id: "pass", label: "Pass", icon: X, cls: "border-[#8a5052] text-[#8a5052]" },
               ].map((v) => (
@@ -197,12 +199,12 @@ export default function SharedReport() {
               ))}
             </div>
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4}
-              className="w-full bg-transparent border border-[#f2ece0]/[0.1] p-4 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c9a96e]"
+              className="w-full bg-transparent border border-[#f2ece0]/[0.1] p-4 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c68b73]"
               placeholder="Your notes on the candidate…"
               data-testid="reviewer-note-input" />
             <div className="mt-4">
               <button onClick={submitNote} disabled={saving || (!note && !verdict)}
-                className="inline-flex items-center gap-2 border border-[#c9a96e] px-6 py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all disabled:opacity-60"
+                className="inline-flex items-center gap-2 border border-[#c68b73] px-6 py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all disabled:opacity-60"
                 data-testid="submit-note-btn">
                 {saving ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />} File verdict
               </button>
@@ -210,6 +212,6 @@ export default function SharedReport() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

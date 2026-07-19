@@ -149,7 +149,7 @@ export default function WebcamPanel({ active, onStop }) {
       {/* HUD corner brackets */}
       <div className="absolute inset-2 pointer-events-none z-10">
         {["top-0 left-0 border-l border-t", "top-0 right-0 border-r border-t", "bottom-0 left-0 border-l border-b", "bottom-0 right-0 border-r border-b"].map((c, i) => (
-          <div key={i} className={`absolute ${c} border-[#c9a96e]/60 w-4 h-4`} />
+          <div key={i} className={`absolute ${c} border-[#c68b73]/60 w-4 h-4`} />
         ))}
       </div>
       <div className="aspect-video relative">
@@ -160,7 +160,7 @@ export default function WebcamPanel({ active, onStop }) {
             {error ? (
               <><CameraOff size={22} className="text-[#8a5052]" /><span className="overline mt-3">{error}</span></>
             ) : (
-              <><Loader2 size={20} className="animate-spin text-[#c9a96e]" /><span className="overline mt-3">Initialising counsel view</span></>
+              <><Loader2 size={20} className="animate-spin text-[#c68b73]" /><span className="overline mt-3">Initialising counsel view</span></>
             )}
           </div>
         )}

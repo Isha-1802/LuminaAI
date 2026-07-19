@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import AmbientBackground from "@/components/AmbientBackground";
 import { MapPin, Clock, Loader2, Calendar, Star } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -56,7 +57,7 @@ export default function InterviewerProfile() {
   if (busy) {
     return (
       <div className="min-h-screen bg-[#0c0a09] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#c9a96e]" size={32} />
+        <Loader2 className="animate-spin text-[#c68b73]" size={32} />
       </div>
     );
   }
@@ -64,9 +65,10 @@ export default function InterviewerProfile() {
   if (!interviewer) return null;
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
       <Navbar />
-      
+      <AmbientBackground variant="warm" />
+
       <div className="pt-[112px] max-w-[1000px] mx-auto px-6 md:px-12 pb-24">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div className="flex flex-col md:flex-row gap-12">
@@ -75,16 +77,16 @@ export default function InterviewerProfile() {
             <div className="flex-1 space-y-6">
               <div className="overline-gold mb-2">§ Expert Profile</div>
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-[#1a1714] border border-[#c9a96e]/30 flex-shrink-0 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-[#1a1714] border border-[#c68b73]/30 flex-shrink-0 flex items-center justify-center">
                   {interviewer.picture ? (
                     <img src={interviewer.picture.startsWith("http") ? interviewer.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${interviewer.picture}`} alt={interviewer.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-[#c9a96e] font-display text-4xl">{interviewer.name?.charAt(0) || interviewer.email?.charAt(0) || "?"}</span>
+                    <span className="text-[#c68b73] font-display text-4xl">{interviewer.name?.charAt(0) || interviewer.email?.charAt(0) || "?"}</span>
                   )}
                 </div>
                 <div>
                   <h1 className="font-display text-4xl md:text-5xl tracking-tight">{interviewer.name}</h1>
-                  <div className="text-xl text-[#c9a96e] mt-2">{interviewer.headline || "Industry Expert"}</div>
+                  <div className="text-xl text-[#c68b73] mt-2">{interviewer.headline || "Industry Expert"}</div>
                 </div>
               </div>
               
@@ -98,7 +100,7 @@ export default function InterviewerProfile() {
                 {/* Platform-assigned rate based on monetization tier */}
                 {interviewer.is_monetized ? (
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-[#c9a96e] font-medium border border-[#c9a96e]/40 px-2 py-0.5">
+                    <div className="flex items-center gap-1 text-[#c68b73] font-medium border border-[#c68b73]/40 px-2 py-0.5">
                       ₹{(interviewer.platform_rate_inr || 0).toLocaleString("en-IN")}/session
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-[#a8a094] border border-[#f2ece0]/10 px-2 py-0.5">
@@ -145,11 +147,11 @@ export default function InterviewerProfile() {
                           <Star
                             key={star}
                             size={18}
-                            className={star <= Math.round(interviewer.avg_rating || 0) ? "fill-[#c9a96e] text-[#c9a96e]" : "text-[#3a3530]"}
+                            className={star <= Math.round(interviewer.avg_rating || 0) ? "fill-[#c68b73] text-[#c68b73]" : "text-[#3a3530]"}
                           />
                         ))}
                       </div>
-                      <span className="font-display text-2xl text-[#c9a96e]">{(interviewer.avg_rating || 0).toFixed(1)}</span>
+                      <span className="font-display text-2xl text-[#c68b73]">{(interviewer.avg_rating || 0).toFixed(1)}</span>
                       <span className="text-sm text-[#a8a094]">({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
                     </div>
                     
@@ -161,7 +163,7 @@ export default function InterviewerProfile() {
                               <div className="font-medium text-[#f2ece0] text-sm">{r.candidate_name}</div>
                               <div className="flex gap-0.5 mt-1">
                                 {[1,2,3,4,5].map(s => (
-                                  <Star key={s} size={12} className={s <= r.rating ? "fill-[#c9a96e] text-[#c9a96e]" : "text-[#3a3530]"} />
+                                  <Star key={s} size={12} className={s <= r.rating ? "fill-[#c68b73] text-[#c68b73]" : "text-[#3a3530]"} />
                                 ))}
                               </div>
                             </div>
@@ -184,7 +186,7 @@ export default function InterviewerProfile() {
             <div className="w-full md:w-[380px]">
               <div className="border border-[#f2ece0]/[0.15] bg-[#f2ece0]/[0.02] p-8 sticky top-[112px]">
                 <div className="flex items-center gap-2 mb-6">
-                  <Calendar className="text-[#c9a96e]" size={20} />
+                  <Calendar className="text-[#c68b73]" size={20} />
                   <h3 className="font-display text-xl">Available Sessions</h3>
                 </div>
                 
@@ -198,7 +200,7 @@ export default function InterviewerProfile() {
                       key={slot}
                       onClick={() => handleBook(slot)}
                       disabled={bookingBusy}
-                      className="w-full flex items-center justify-between border border-[#f2ece0]/20 p-4 hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all text-left disabled:opacity-50"
+                      className="w-full flex items-center justify-between border border-[#f2ece0]/20 p-4 hover:border-[#c68b73] hover:bg-[#c68b73]/5 transition-all text-left disabled:opacity-50"
                     >
                       <div>
                         <div className="font-medium text-[#f2ece0]">
@@ -208,7 +210,7 @@ export default function InterviewerProfile() {
                           {new Date(slot).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider text-[#c9a96e] font-bold">
+                      <div className="text-[10px] uppercase tracking-wider text-[#c68b73] font-bold">
                         Book
                       </div>
                     </button>
@@ -226,6 +228,6 @@ export default function InterviewerProfile() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

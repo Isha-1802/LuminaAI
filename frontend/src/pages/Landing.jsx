@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
-import { Link } from "react-router-dom";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Play, Cpu, Code2, MessagesSquare, Users, Zap, ShieldCheck, Radio, Sparkles, TrendingUp, LineChart, Activity, Circle, Layers, GitBranch, Terminal, ChevronDown } from "lucide-react";
 import AISceneCore from "@/components/AICore";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import MagneticButton from "@/components/MagneticButton";
-import ScrambleText from "@/components/ScrambleText";
+import TextReveal from "@/components/TextReveal";
 import LiveInterviewDemo from "@/components/LiveInterviewDemo";
 import FaqAccordion from "@/components/FaqAccordion";
 import Navbar from "@/components/Navbar";
@@ -19,11 +19,14 @@ const fadeUp = {
 
 const houses = ["Stripe", "Anthropic", "Airbnb", "OpenAI", "Ramp", "Vercel", "Linear", "Notion", "Figma", "Scale", "Perplexity", "Cursor", "Retool"];
 
+const QUOTE_BG = "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhcmslMjBnbGFzcyUyMHRleHR1cmV8ZW58MHx8fHwxNzgzMTg0OTI4fDA&ixlib=rb-4.1.0&q=85";
+const CTA_BG = "https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxkYXJrJTIwY2luZW1hdGljJTIwb2ZmaWNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzgzMTg0OTI3fDA&ixlib=rb-4.1.0&q=85";
+
 const modes = [
-  { icon: Code2, name: "Technical", detail: "Systems, tradeoffs, deep architecture." },
-  { icon: MessagesSquare, name: "Behavioural", detail: "STAR stories, judgement, culture." },
-  { icon: Terminal, name: "Coding", detail: "Algorithms, complexity, elegance." },
-  { icon: Users, name: "Screening", detail: "Motivation, comp, logistics." },
+  { id: "technical", icon: Code2, name: "Technical", detail: "Systems, tradeoffs, deep architecture." },
+  { id: "behavioral", icon: MessagesSquare, name: "Behavioural", detail: "STAR stories, judgement, culture." },
+  { id: "coding", icon: Terminal, name: "Coding", detail: "Algorithms, complexity, elegance." },
+  { id: "hr", icon: Users, name: "Screening", detail: "Motivation, comp, logistics." },
 ];
 
 const counsel = [
@@ -53,11 +56,7 @@ const roadmap = [
 export default function Landing() {
   const heroRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const cursorXs = useSpring(cursorX, { stiffness: 240, damping: 22 });
-  const cursorYs = useSpring(cursorY, { stiffness: 240, damping: 22 });
-  const [cursorActive, setCursorActive] = useState(false);
+  const nav = useNavigate();
 
   useEffect(() => {
     const onMove = (e) => {
@@ -65,12 +64,10 @@ export default function Landing() {
       const ny = (e.clientY / window.innerHeight) * 2 - 1;
       mouseRef.current.x = nx;
       mouseRef.current.y = ny;
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
     };
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [cursorX, cursorY]);
+  }, []);
 
   const { scrollYProgress } = useScroll();
   const bgY1 = useTransform(scrollYProgress, [0, 1], ["0%", "-40%"]);
@@ -86,31 +83,14 @@ export default function Landing() {
     <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0] overflow-hidden" data-testid="landing-page">
       <Navbar />
 
-      {/* Cursor blob */}
-      <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[200] w-6 h-6 rounded-full mix-blend-difference hidden md:block"
-        style={{ x: cursorXs, y: cursorYs, translateX: "-50%", translateY: "-50%", background: "#c9a96e", opacity: cursorActive ? 0.9 : 0.6 }}
-      />
-
       {/* Ambient parallax layers */}
       <motion.div style={{ y: bgY1 }} className="pointer-events-none fixed inset-0 opacity-90">
-        <div className="absolute -top-32 -right-32 w-[620px] h-[620px] rounded-full bg-[#c9a96e]/[0.06] blur-[140px]" />
+        <div className="absolute -top-32 -right-32 w-[620px] h-[620px] rounded-full bg-[#c68b73]/[0.06] blur-[140px]" />
         <div className="absolute top-1/2 -left-40 w-[520px] h-[520px] rounded-full bg-[#5a1a24]/[0.09] blur-[160px]" />
       </motion.div>
       <motion.div style={{ y: bgY2 }} className="pointer-events-none fixed inset-0">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[880px] h-[280px] rounded-full bg-[#c9a96e]/[0.04] blur-[140px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[880px] h-[280px] rounded-full bg-[#c68b73]/[0.04] blur-[140px]" />
       </motion.div>
-
-      {/* Fixed HUD chrome */}
-      <div className="hidden lg:block fixed top-[80px] left-0 right-0 z-30 pointer-events-none">
-        <div className="max-w-[1400px] mx-auto px-12 flex items-center justify-between">
-          <div className="overline-gold text-[9px]">MMXXVI · SF · <span className="text-[#f2ece0]">37.7749°N</span></div>
-          <div className="overline text-[9px]">
-            <span className="w-1.5 h-1.5 inline-block bg-[#c9a96e] rounded-full mr-2 animate-pulse" />
-            SYSTEM · NOMINAL
-          </div>
-        </div>
-      </div>
 
       {/* =========================================== */}
       {/* ==============  HERO  ===================== */}
@@ -119,8 +99,8 @@ export default function Landing() {
         <motion.div style={{ y: heroY, opacity: heroOpacity, scale: heroScale }} className="max-w-[1440px] mx-auto px-6 md:px-12 grid lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           {/* Left rail */}
           <motion.div {...fadeUp} className="hidden lg:flex lg:col-span-1 flex-col items-start gap-8 pt-4 self-start">
-            <div className="vertical-rl overline text-[#c9a96e]">Vol I — Winter Rehearsals · MMXXVI</div>
-            <div className="w-px h-24 bg-gradient-to-b from-[#c9a96e]/60 to-transparent" />
+            <div className="vertical-rl overline text-[#c68b73]">Vol I — Winter Rehearsals · MMXXVI</div>
+            <div className="w-px h-24 bg-gradient-to-b from-[#c68b73]/60 to-transparent" />
             <div className="flex flex-col gap-2 overline text-[9px]">
               <span>№01 · Method</span>
               <span>№02 · Salon</span>
@@ -132,18 +112,18 @@ export default function Landing() {
           <div className="lg:col-span-6 relative z-10">
             <motion.div {...fadeUp}>
               <div className="flex items-center gap-4 mb-10">
-                <div className="w-10 h-px bg-[#c9a96e]" />
+                <div className="w-10 h-px bg-[#c68b73]" />
                 <span className="overline-gold" data-testid="hero-badge">MMXXVI · Private Beta · Volume I</span>
               </div>
 
               <h1 className="font-display text-[64px] md:text-[96px] lg:text-[120px] leading-[0.92] tracking-[-0.035em]">
                 <div>Where <span className="font-display-italic text-shimmer">Intelligence</span></div>
                 <div className="mt-1">Meets <span className="font-display-italic">Opportunity</span>
-                  <span className="text-[#c9a96e] inline-block ml-1">.</span>
+                  <span className="text-[#c68b73] inline-block ml-1">.</span>
                 </div>
               </h1>
 
-              <div className="mt-10 max-w-[540px] relative pl-6 border-l border-[#c9a96e]/40">
+              <div className="mt-10 max-w-[540px] relative pl-6 border-l border-[#c68b73]/40">
                 <p className="text-[#a8a094] leading-relaxed text-[15px] md:text-[16px]">
                   A private atelier of AI counsels — Claude, GPT-5.2, Gemini — that read your résumé, conduct cinematic
                   rehearsals, and return a boardroom report before your next real one.
@@ -154,18 +134,16 @@ export default function Landing() {
                 <MagneticButton>
                   <Link
                     to="/auth?mode=signup"
-                    className="group inline-flex items-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-8 py-4 text-[11px] uppercase tracking-[0.32em] font-medium hover:bg-[#c9a96e] transition-all duration-500"
+                    className="group inline-flex items-center gap-3 bg-[#f2ece0] text-[#0c0a09] px-8 py-4 text-[11px] uppercase tracking-[0.32em] font-medium hover:bg-[#c68b73] transition-all duration-500"
                     data-testid="hero-start-btn"
-                    onMouseEnter={() => setCursorActive(true)}
-                    onMouseLeave={() => setCursorActive(false)}
                   >
                     <Play size={11} className="fill-[#0c0a09]" />
                     Login / Sign Up
                     <ArrowUpRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500" />
                   </Link>
                 </MagneticButton>
-                <a href="#method" className="group inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.32em] hover:text-[#c9a96e] transition-colors" data-testid="hero-explore-btn">
-                  <span className="w-6 h-px bg-[#c9a96e] group-hover:w-12 transition-all duration-500" />
+                <a href="#method" className="group inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.32em] hover:text-[#c68b73] transition-colors" data-testid="hero-explore-btn">
+                  <span className="w-6 h-px bg-[#c68b73] group-hover:w-12 transition-all duration-500" />
                   The Method
                 </a>
               </div>
@@ -178,7 +156,7 @@ export default function Landing() {
                   { v: 4.9, s: "/5", l: "Salon rating", d: 1 },
                 ].map((m, i) => (
                   <div key={i}>
-                    <div className="font-display text-3xl md:text-4xl text-[#c9a96e]">
+                    <div className="font-display text-3xl md:text-4xl text-[#c68b73]">
                       <AnimatedCounter value={m.v} suffix={m.s} decimals={m.d} />
                     </div>
                     <div className="overline mt-2">{m.l}</div>
@@ -216,7 +194,7 @@ export default function Landing() {
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
         >
           <span className="overline text-[9px]">Scroll</span>
-          <ChevronDown size={14} className="text-[#c9a96e]" />
+          <ChevronDown size={14} className="text-[#c68b73]" />
         </motion.div>
       </section>
 
@@ -227,8 +205,8 @@ export default function Landing() {
         <div className="flex animate-ticker whitespace-nowrap">
           {[...houses, ...houses, ...houses].map((h, i) => (
             <div key={i} className="flex items-center gap-16 px-8">
-              <span className="font-display italic text-[26px] md:text-[36px] text-[#f2ece0]/40 hover:text-[#c9a96e] transition-colors duration-500">{h}</span>
-              <span className="text-[#c9a96e]/40">✧</span>
+              <span className="font-display italic text-[26px] md:text-[36px] text-[#f2ece0]/40 hover:text-[#c68b73] transition-colors duration-500">{h}</span>
+              <span className="text-[#c68b73]/40">✧</span>
             </div>
           ))}
         </div>
@@ -254,10 +232,10 @@ export default function Landing() {
                 className={`p-10 md:p-12 relative ${i > 0 ? "md:border-l border-[#f2ece0]/[0.08]" : ""} ${i % 2 === 1 ? "border-l border-[#f2ece0]/[0.08] md:border-l-0" : ""} ${i > 1 ? "border-t md:border-t-0 border-[#f2ece0]/[0.08]" : ""} group hover:bg-[#f2ece0]/[0.015] transition-colors duration-500`}
               >
                 <div className="overline mb-8">{m.l}</div>
-                <div className="font-display text-5xl md:text-6xl tracking-[-0.03em] text-[#c9a96e]">
+                <div className="font-display text-5xl md:text-6xl tracking-[-0.03em] text-[#c68b73]">
                   <AnimatedCounter value={m.v} prefix={m.prefix} suffix={m.suffix} />
                 </div>
-                <div className="absolute bottom-0 left-0 h-px w-0 bg-[#c9a96e] group-hover:w-full transition-all duration-700" />
+                <div className="absolute bottom-0 left-0 h-px w-0 bg-[#c68b73] group-hover:w-full transition-all duration-700" />
               </motion.div>
             ))}
           </motion.div>
@@ -273,11 +251,11 @@ export default function Landing() {
             <motion.div {...fadeUp} className="lg:col-span-5 lg:sticky lg:top-32 self-start">
               <div className="overline-gold mb-6">§ I — The Method</div>
               <h2 className="font-display text-[52px] md:text-[72px] leading-[0.94] tracking-[-0.025em]">
-                <ScrambleText text="Rehearse in" duration={1.2} />
+                <TextReveal text="Rehearse in" />
                 <br />
-                <span className="font-display-italic text-[#c9a96e]">private</span>.
+                <span className="font-display-italic text-[#c68b73]">private</span>.
                 <br />
-                <ScrambleText text="Perform in" duration={1.2} />
+                <TextReveal text="Perform in" delay={0.2} />
                 <br />
                 <span className="font-display-italic">public</span>.
               </h2>
@@ -285,7 +263,7 @@ export default function Landing() {
                 Three quiet acts. One decisive performance. An interview coach for the ones who prepare like editors, not students.
               </p>
               <div className="mt-10 flex items-center gap-4">
-                <div className="w-16 h-px bg-[#c9a96e]" />
+                <div className="w-16 h-px bg-[#c68b73]" />
                 <span className="overline">Est. MMXXVI · San Francisco</span>
               </div>
             </motion.div>
@@ -306,10 +284,10 @@ export default function Landing() {
                   data-testid={`feature-card-${i}`}
                 >
                   <div className="col-span-2 md:col-span-1 pt-2">
-                    <div className="font-display italic text-[#c9a96e] text-3xl">{m.n}</div>
+                    <div className="font-display italic text-[#c68b73] text-3xl">{m.n}</div>
                   </div>
                   <div className="col-span-10 md:col-span-11 pr-4">
-                    <h3 className="font-display text-3xl md:text-4xl tracking-tight text-[#f2ece0] group-hover:text-[#c9a96e] transition-colors duration-500">
+                    <h3 className="font-display text-3xl md:text-4xl tracking-tight text-[#f2ece0] group-hover:text-[#c68b73] transition-colors duration-500">
                       {m.title}
                     </h3>
                     <p className="mt-4 text-[#a8a094] leading-relaxed max-w-2xl">{m.body}</p>
@@ -345,7 +323,7 @@ export default function Landing() {
               ].map((s) => (
                 <div key={s.l} className="flex-1 min-w-[120px]">
                   <div className="overline mb-2">{s.l}</div>
-                  <div className="font-display text-4xl text-[#c9a96e]">
+                  <div className="font-display text-4xl text-[#c68b73]">
                     <AnimatedCounter value={s.v} />
                   </div>
                   <div className="mt-2 h-px bg-[#f2ece0]/[0.08] relative overflow-hidden">
@@ -354,7 +332,7 @@ export default function Landing() {
                       whileInView={{ width: `${s.v}%` }}
                       viewport={{ once: true }}
                       transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute inset-y-0 left-0 bg-[#c9a96e]"
+                      className="absolute inset-y-0 left-0 bg-[#c68b73]"
                     />
                   </div>
                 </div>
@@ -394,12 +372,12 @@ export default function Landing() {
                 data-testid={`cap-${i}`}
               >
                 <div className="flex items-start justify-between mb-8">
-                  <c.icon size={20} className="text-[#c9a96e]" />
+                  <c.icon size={20} className="text-[#c68b73]" />
                   <span className="overline-gold text-[9px]">0{i + 1}</span>
                 </div>
                 <h3 className="font-display text-2xl tracking-tight leading-tight">{c.t}</h3>
                 <p className="mt-3 text-sm text-[#a8a094] leading-relaxed">{c.d}</p>
-                <div className="absolute bottom-0 left-0 h-px w-0 bg-[#c9a96e] group-hover:w-full transition-all duration-700" />
+                <div className="absolute bottom-0 left-0 h-px w-0 bg-[#c68b73] group-hover:w-full transition-all duration-700" />
               </motion.div>
             ))}
           </div>
@@ -442,7 +420,7 @@ export default function Landing() {
                   <br />
                   <span className="font-display-italic">{c.label.split(" ").slice(-1)[0]}</span>
                 </h3>
-                <div className="overline mt-6 text-[#c9a96e]">{c.trait}</div>
+                <div className="overline mt-6 text-[#c68b73]">{c.trait}</div>
 
                 {/* Radar-like bars */}
                 <div className="mt-10 space-y-4">
@@ -450,7 +428,7 @@ export default function Landing() {
                     <div key={lbl}>
                       <div className="flex items-baseline justify-between text-[10px] uppercase tracking-[0.28em] text-[#a8a094]">
                         <span>{lbl}</span>
-                        <span className="text-[#c9a96e]">{c.stat[j]}</span>
+                        <span className="text-[#c68b73]">{c.stat[j]}</span>
                       </div>
                       <div className="mt-1 h-px bg-[#f2ece0]/[0.08] relative overflow-hidden">
                         <motion.div
@@ -458,13 +436,13 @@ export default function Landing() {
                           whileInView={{ width: `${c.stat[j]}%` }}
                           viewport={{ once: true }}
                           transition={{ duration: 1.2, delay: 0.2 + j * 0.1 }}
-                          className="absolute inset-y-0 left-0 bg-[#c9a96e]"
+                          className="absolute inset-y-0 left-0 bg-[#c68b73]"
                         />
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#c9a96e]/30 transition-colors duration-500 pointer-events-none" />
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#c68b73]/30 transition-colors duration-500 pointer-events-none" />
               </motion.div>
             ))}
           </div>
@@ -493,12 +471,11 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: i * 0.1 }}
+                onClick={() => nav(`/rooms/${m.id}`)}
                 className={`relative p-10 md:p-12 group cursor-pointer overflow-hidden hover:bg-[#f2ece0]/[0.03] transition-all duration-500 min-h-[280px] flex flex-col justify-between ${
                   i > 0 ? "md:border-l border-[#f2ece0]/[0.08]" : ""
                 } ${i >= 2 ? "lg:border-l lg:border-t-0 border-t border-[#f2ece0]/[0.08]" : ""}`}
                 data-testid={`mode-${m.name}`}
-                onMouseEnter={() => setCursorActive(true)}
-                onMouseLeave={() => setCursorActive(false)}
               >
                 <div className="flex items-start justify-between">
                   <motion.div
@@ -506,19 +483,19 @@ export default function Landing() {
                     whileHover={{ rotate: 15, scale: 1.15 }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <m.icon size={28} className="text-[#c9a96e]" />
+                    <m.icon size={28} className="text-[#c68b73]" />
                   </motion.div>
                   <span className="overline-gold text-[9px]">0{i + 1}</span>
                 </div>
                 <div>
                   <h3 className="font-display text-3xl md:text-4xl tracking-tight">{m.name}</h3>
                   <p className="mt-4 text-sm text-[#a8a094] leading-relaxed">{m.detail}</p>
-                  <div className="mt-6 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.32em] text-[#c9a96e] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-500">
+                  <div className="mt-6 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.32em] text-[#c68b73] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-500">
                     Enter <ArrowUpRight size={12} />
                   </div>
                 </div>
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-700"
-                  style={{ background: "radial-gradient(circle at 70% 30%, rgba(201,169,110,0.09), transparent 60%)" }} />
+                  style={{ background: "radial-gradient(circle at 70% 30%, rgba(198,139,115,0.09), transparent 60%)" }} />
               </motion.div>
             ))}
           </div>
@@ -538,7 +515,7 @@ export default function Landing() {
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#c9a96e]/40 to-transparent" />
+            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#c68b73]/40 to-transparent" />
             {roadmap.map((r, i) => (
               <motion.div
                 key={r.q}
@@ -550,11 +527,11 @@ export default function Landing() {
                 data-testid={`roadmap-${r.q}`}
               >
                 <div className={`${i % 2 ? "md:col-start-2 md:text-left" : "md:text-right"} pl-16 md:pl-0`}>
-                  <div className="font-display text-6xl md:text-8xl text-[#c9a96e]/60 leading-none">{r.q}</div>
+                  <div className="font-display text-6xl md:text-8xl text-[#c68b73]/60 leading-none">{r.q}</div>
                 </div>
                 <div className={`${i % 2 ? "md:col-start-1 md:row-start-1" : ""} pl-16 md:pl-12`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <Circle size={8} fill={r.live ? "#c9a96e" : "transparent"} className="text-[#c9a96e]" />
+                    <Circle size={8} fill={r.live ? "#c68b73" : "transparent"} className="text-[#c68b73]" />
                     <span className="overline-gold">{r.live ? "Available now" : "Forthcoming"}</span>
                   </div>
                   <p className="font-display text-2xl md:text-3xl tracking-tight leading-tight text-[#f2ece0]">
@@ -562,7 +539,7 @@ export default function Landing() {
                   </p>
                 </div>
                 <div className="absolute left-8 md:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <div className={`w-3 h-3 rounded-full ${r.live ? "bg-[#c9a96e] shadow-[0_0_20px_rgba(201,169,110,0.6)]" : "border border-[#c9a96e]/50"}`} />
+                  <div className={`w-3 h-3 rounded-full ${r.live ? "bg-[#c68b73] shadow-[0_0_20px_rgba(198,139,115,0.6)]" : "border border-[#c68b73]/50"}`} />
                 </div>
               </motion.div>
             ))}
@@ -573,16 +550,22 @@ export default function Landing() {
       {/* =========================================== */}
       {/* ==========  QUOTE  ======================== */}
       {/* =========================================== */}
-      <section className="relative py-32 md:py-40 border-y border-[#f2ece0]/[0.08]" data-testid="quote-section">
-        <div className="max-w-[1000px] mx-auto px-6 md:px-12 text-center">
+      <section className="relative py-32 md:py-40 border-y border-[#f2ece0]/[0.08] overflow-hidden" data-testid="quote-section">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.38] bg-drift"
+          style={{ backgroundImage: `url(${QUOTE_BG})` }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09] via-[#0c0a09]/35 to-[#0c0a09]" aria-hidden="true" />
+        <div className="max-w-[1000px] mx-auto px-6 md:px-12 text-center relative">
           <motion.div {...fadeUp}>
-            <span className="font-display italic text-[#c9a96e] text-7xl leading-none">"</span>
+            <span className="font-display italic text-[#c68b73] text-7xl leading-none">"</span>
             <blockquote className="font-display text-3xl md:text-5xl leading-[1.15] tracking-[-0.02em] mt-4">
               I've never walked into a room this <span className="font-display-italic text-shimmer">composed</span>.
               The rehearsal was harder than the interview — which is precisely the point.
             </blockquote>
             <div className="mt-10 flex flex-col items-center gap-2">
-              <div className="w-8 h-px bg-[#c9a96e]" />
+              <div className="w-8 h-px bg-[#c68b73]" />
               <span className="overline">M. Kaur — Product Designer, Stripe</span>
             </div>
           </motion.div>
@@ -607,8 +590,14 @@ export default function Landing() {
       {/* =========================================== */}
       {/* ==========  ATELIER / CTA  ================ */}
       {/* =========================================== */}
-      <section id="pricing" className="relative py-32 md:py-48 border-t border-[#f2ece0]/[0.08]" data-testid="cta-section">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+      <section id="pricing" className="relative py-32 md:py-48 border-t border-[#f2ece0]/[0.08] overflow-hidden" data-testid="cta-section">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.30] bg-drift"
+          style={{ backgroundImage: `url(${CTA_BG})` }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c0a09] via-[#0c0a09]/45 to-[#0c0a09]" aria-hidden="true" />
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative">
           <motion.div {...fadeUp} className="grid lg:grid-cols-12 gap-8 items-end">
             <div className="lg:col-span-8">
               <div className="overline-gold mb-6">§ VIII — The Atelier</div>
@@ -621,7 +610,7 @@ export default function Landing() {
               </h2>
             </div>
             <div className="lg:col-span-4 flex flex-col gap-8">
-              <div className="border-l border-[#c9a96e]/40 pl-6">
+              <div className="border-l border-[#c68b73]/40 pl-6">
                 <div className="overline mb-2">Complimentary · Private Beta</div>
                 <p className="text-[#a8a094] text-sm leading-relaxed">
                   A limited number of seats are open this season. No card. Cancel any time — nothing to cancel.
@@ -630,16 +619,14 @@ export default function Landing() {
               <MagneticButton>
                 <Link
                   to="/auth?mode=signup"
-                  className="group inline-flex items-center justify-between gap-3 border border-[#c9a96e] text-[#f2ece0] px-8 py-5 hover:bg-[#c9a96e] hover:text-[#0c0a09] transition-all duration-500 w-full"
+                  className="group inline-flex items-center justify-between gap-3 border border-[#c68b73] text-[#f2ece0] px-8 py-5 hover:bg-[#c68b73] hover:text-[#0c0a09] transition-all duration-500 w-full"
                   data-testid="cta-signup-btn"
-                  onMouseEnter={() => setCursorActive(true)}
-                  onMouseLeave={() => setCursorActive(false)}
                 >
                   <span className="text-[11px] uppercase tracking-[0.32em] font-medium">Sign Up</span>
                   <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </MagneticButton>
-              <Link to="/auth?mode=login" className="overline hover:text-[#c9a96e] transition-colors" data-testid="cta-login-link">
+              <Link to="/auth?mode=login" className="overline hover:text-[#c68b73] transition-colors" data-testid="cta-login-link">
                 Already have an account? Login →
               </Link>
             </div>
@@ -655,21 +642,21 @@ export default function Landing() {
           <div className="grid lg:grid-cols-12 gap-10">
             <div className="lg:col-span-5">
               <Link to="/" className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#c9a96e]" />
+                <div className="w-2 h-2 rounded-full bg-[#c68b73]" />
                 <span className="font-display italic text-3xl">Lumina</span>
               </Link>
               <p className="mt-6 text-[#a8a094] max-w-md leading-relaxed">
                 A private atelier for the interview room. Rehearse quietly. Perform decisively.
               </p>
               <div className="mt-10 flex items-center gap-6 overline">
-                <a className="hover:text-[#c9a96e] transition-colors" href="#">Instagram</a>
-                <a className="hover:text-[#c9a96e] transition-colors" href="#">LinkedIn</a>
-                <a className="hover:text-[#c9a96e] transition-colors" href="#">Journal</a>
+                <a className="hover:text-[#c68b73] transition-colors" href="#">Instagram</a>
+                <a className="hover:text-[#c68b73] transition-colors" href="#">LinkedIn</a>
+                <a className="hover:text-[#c68b73] transition-colors" href="#">Journal</a>
               </div>
             </div>
 
             <div className="lg:col-span-2">
-              <div className="overline mb-6 text-[#c9a96e]">The House</div>
+              <div className="overline mb-6 text-[#c68b73]">The House</div>
               <ul className="space-y-3 text-[#a8a094] text-sm">
                 <li><a className="hover:text-[#f2ece0] transition-colors" href="#method">Method</a></li>
                 <li><a className="hover:text-[#f2ece0] transition-colors" href="#modes-section">Modes</a></li>
@@ -677,7 +664,7 @@ export default function Landing() {
               </ul>
             </div>
             <div className="lg:col-span-2">
-              <div className="overline mb-6 text-[#c9a96e]">Studio</div>
+              <div className="overline mb-6 text-[#c68b73]">Studio</div>
               <ul className="space-y-3 text-[#a8a094] text-sm">
                 <li><a className="hover:text-[#f2ece0] transition-colors" href="#">About</a></li>
                 <li><a className="hover:text-[#f2ece0] transition-colors" href="#">Careers</a></li>
@@ -685,7 +672,7 @@ export default function Landing() {
               </ul>
             </div>
             <div className="lg:col-span-3">
-              <div className="overline mb-6 text-[#c9a96e]">Correspondence</div>
+              <div className="overline mb-6 text-[#c68b73]">Correspondence</div>
               <p className="text-[#a8a094] text-sm leading-relaxed">
                 hello@lumina.ai
                 <br />+1 (415) 555 · 0117
@@ -696,7 +683,7 @@ export default function Landing() {
 
           <div className="mt-20 pt-8 border-t border-[#f2ece0]/[0.06] flex flex-wrap justify-between items-center gap-4">
             <span className="overline">© MMXXVI Lumina Labs · Bound in San Francisco</span>
-            <span className="font-display italic text-[#c9a96e]/70">Rehearse in private. Perform in public.</span>
+            <span className="font-display italic text-[#c68b73]/70">Rehearse in private. Perform in public.</span>
           </div>
         </div>
       </footer>

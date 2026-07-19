@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
+import AmbientBackground from "@/components/AmbientBackground";
+import TiltCard from "@/components/TiltCard";
 import { Search, MapPin, Star, Clock, Filter, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -30,9 +32,10 @@ export default function InterviewerBrowse() {
   }, [search]);
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen bg-[#0c0a09] text-[#f2ece0]">
       <Navbar />
-      
+      <AmbientBackground variant="warm" />
+
       <div className="pt-[112px] max-w-[1200px] mx-auto px-6 md:px-12 pb-24">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
@@ -51,14 +54,14 @@ export default function InterviewerBrowse() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, role, company..."
-                className="w-full bg-transparent border border-[#f2ece0]/[0.15] pl-12 pr-4 py-3 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c9a96e]"
+                className="w-full bg-transparent border border-[#f2ece0]/[0.15] pl-12 pr-4 py-3 text-sm text-[#f2ece0] focus:outline-none focus:border-[#c68b73]"
               />
             </div>
           </div>
 
           {busy ? (
             <div className="py-20 flex justify-center">
-              <Loader2 className="animate-spin text-[#c9a96e]" size={32} />
+              <Loader2 className="animate-spin text-[#c68b73]" size={32} />
             </div>
           ) : interviewers.length === 0 ? (
             <div className="border border-dashed border-[#f2ece0]/[0.15] py-20 text-center">
@@ -67,24 +70,24 @@ export default function InterviewerBrowse() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {interviewers.map(i => (
-                <div key={i.user_id} className="border border-[#f2ece0]/[0.08] p-6 flex flex-col hover:border-[#c9a96e]/40 transition-colors">
+                <TiltCard key={i.user_id} className="border border-[#f2ece0]/[0.08] p-6 flex flex-col hover:border-[#c68b73]/40 transition-colors overflow-hidden">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex gap-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-[#1a1714] border border-[#c9a96e]/30 flex-shrink-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-[#1a1714] border border-[#c68b73]/30 flex-shrink-0 flex items-center justify-center">
                         {i.picture ? (
                           <img src={i.picture.startsWith("http") ? i.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${i.picture}`} alt={i.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-[#c9a96e] font-display text-lg">{i.name?.charAt(0) || i.email?.charAt(0) || "?"}</span>
+                          <span className="text-[#c68b73] font-display text-lg">{i.name?.charAt(0) || i.email?.charAt(0) || "?"}</span>
                         )}
                       </div>
                       <div>
                         <h3 className="font-display text-xl text-[#f2ece0]">{i.name}</h3>
-                        <div className="text-sm text-[#c9a96e] mt-1">{i.headline || "Industry Expert"}</div>
+                        <div className="text-sm text-[#c68b73] mt-1">{i.headline || "Industry Expert"}</div>
                         {i.avg_rating > 0 && (
                           <div className="flex items-center gap-1.5 mt-2">
                             <div className="flex gap-0.5">
                               {[1,2,3,4,5].map(s => (
-                                <Star key={s} size={11} className={s <= Math.round(i.avg_rating) ? "fill-[#c9a96e] text-[#c9a96e]" : "text-[#3a3530]"} />
+                                <Star key={s} size={11} className={s <= Math.round(i.avg_rating) ? "fill-[#c68b73] text-[#c68b73]" : "text-[#3a3530]"} />
                               ))}
                             </div>
                             <span className="text-[11px] text-[#a8a094]">{i.avg_rating.toFixed(1)} ({i.review_count})</span>
@@ -93,7 +96,7 @@ export default function InterviewerBrowse() {
                       </div>
                     </div>
                     {i.is_monetized ? (
-                      <div className="text-sm font-medium border border-[#c9a96e]/40 text-[#c9a96e] px-2 py-1">
+                      <div className="text-sm font-medium border border-[#c68b73]/40 text-[#c68b73] px-2 py-1">
                         ₹{(i.platform_rate_inr || 0).toLocaleString("en-IN")}
                       </div>
                     ) : (
@@ -132,15 +135,15 @@ export default function InterviewerBrowse() {
                     )}
                   </div>
                   
-                  <Link to={`/interviewer/${i.user_id}`} className="block w-full text-center border border-[#f2ece0]/20 py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c9a96e] hover:text-[#0c0a09] hover:border-[#c9a96e] transition-all">
+                  <Link to={`/interviewer/${i.user_id}`} className="block w-full text-center border border-[#f2ece0]/20 py-3 text-[10px] uppercase tracking-[0.28em] hover:bg-[#c68b73] hover:text-[#0c0a09] hover:border-[#c68b73] transition-all">
                     View Profile & Book
                   </Link>
-                </div>
+                </TiltCard>
               ))}
             </div>
           )}
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

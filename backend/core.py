@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import io
+import re
 import json
 import uuid
 import bcrypt
@@ -166,6 +167,9 @@ class UserProfileInput(BaseModel):
     picture: Optional[str] = None
     headline: Optional[str] = Field(default=None, max_length=120)
     about: Optional[str] = Field(default=None, max_length=1000)
+    tech_stack: Optional[List[str]] = None
+    connect: Optional[dict] = None
+    about_sections: Optional[dict] = None
     current_company: Optional[str] = Field(default=None, max_length=80)
     previous_companies: Optional[List[str]] = None
     years_of_experience: Optional[int] = Field(default=None, ge=0)
@@ -352,6 +356,53 @@ def safe_json(text: str):
 
 def strip_mongo(doc: dict) -> dict:
     return {k: v for k, v in doc.items() if k not in ("_id",)}
+
+
+_FILLER_PATTERN = re.compile(
+    r"\b(um+|uh+|erm+|like|you know|i mean|sort of|kind of|basically|actually|literally|so yeah|right\?)\b",
+    re.IGNORECASE,
+)
+
+
+def compute_speech_analytics(messages: list) -> dict:
+    """Deterministic candidate-composure metrics derived from transcript text + timestamps."""
+    candidate_msgs = [m for m in messages if m.get("role") == "user"]
+    if not candidate_msgs:
+        return {
+            "filler_word_count": 0, "avg_words_per_response": 0, "total_responses": 0,
+            "avg_response_time_seconds": 0, "longest_pause_seconds": 0, "fastest_response_seconds": 0,
+        }
+
+    filler_count = 0
+    word_counts = []
+    for m in candidate_msgs:
+        text = m.get("content") or ""
+        filler_count += len(_FILLER_PATTERN.findall(text))
+        word_counts.append(len(text.split()))
+
+    response_times = []
+    for i, m in enumerate(messages):
+        if m.get("role") != "user":
+            continue
+        prev = messages[i - 1] if i > 0 else None
+        if prev and prev.get("role") == "assistant":
+            try:
+                t0 = datetime.fromisoformat(prev["ts"].replace("Z", "+00:00"))
+                t1 = datetime.fromisoformat(m["ts"].replace("Z", "+00:00"))
+                delta = (t1 - t0).total_seconds()
+                if 0 < delta < 900:
+                    response_times.append(delta)
+            except Exception:
+                continue
+
+    return {
+        "filler_word_count": filler_count,
+        "avg_words_per_response": round(sum(word_counts) / len(word_counts), 1) if word_counts else 0,
+        "total_responses": len(candidate_msgs),
+        "avg_response_time_seconds": round(sum(response_times) / len(response_times), 1) if response_times else 0,
+        "longest_pause_seconds": round(max(response_times), 1) if response_times else 0,
+        "fastest_response_seconds": round(min(response_times), 1) if response_times else 0,
+    }
 
 
 def extract_resume_text(filename: str, data: bytes) -> str:

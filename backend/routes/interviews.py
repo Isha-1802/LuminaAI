@@ -14,6 +14,7 @@ from core import (
     put_object, get_object,
     openai_stt, openai_tts,
     render_report_pdf, AVAILABLE_MODELS, ATELIERS,
+    compute_speech_analytics,
 )
 
 router = APIRouter(prefix="/api", tags=["interviews"])
@@ -327,27 +328,38 @@ async def _generate_feedback(interview_id: str, user: dict):
         "{\n"
         '  "overall_score": <int 0-100>,\n'
         '  "scores": {"technical": <0-100>, "communication": <0-100>, "problem_solving": <0-100>, "confidence": <0-100>},\n'
+        '  "heatmap": {"communication": <0-100>, "problem_solving": <0-100>, "technical_depth": <0-100>, "confidence": <0-100>, "leadership": <0-100>, "system_design": <0-100>},\n'
         '  "strengths": [<3 short strings>],\n'
         '  "improvements": [<3 short strings>],\n'
         '  "summary": "<2-3 sentence executive summary>",\n'
         '  "next_steps": [<3 actionable strings>]\n'
         "}\n\n"
+        "The heatmap axes are independent of scores: judge leadership from ownership/initiative in answers, "
+        "and system_design from architecture/tradeoff reasoning (score low-but-fair if the interview type never touched that axis).\n\n"
         f"Role: {doc['role_title']} | Type: {doc['interview_type']} | Difficulty: {doc['difficulty']}\n\n"
         f"TRANSCRIPT:\n{transcript}\n\nReturn ONLY valid JSON."
     )
     raw = await llm_chat(doc["model_id"], f"{interview_id}-feedback", "You output strict JSON only. Never include prose outside JSON.", fb_prompt)
+    default_heatmap = {"communication": 0, "problem_solving": 0, "technical_depth": 0, "confidence": 0, "leadership": 0, "system_design": 0}
     feedback = safe_json(raw) or {
         "overall_score": 0,
         "scores": {"technical": 0, "communication": 0, "problem_solving": 0, "confidence": 0},
+        "heatmap": default_heatmap,
         "strengths": [], "improvements": ["Feedback parsing failed. Please retry."],
         "summary": raw[:500], "next_steps": [],
     }
+    if not feedback.get("heatmap"):
+        feedback["heatmap"] = default_heatmap
+
+    speech_analytics = compute_speech_analytics(doc["messages"])
+
     await db.interviews.update_one(
         {"interview_id": interview_id},
         {"$set": {
             "status": "completed",
             "feedback": feedback,
             "score": feedback.get("overall_score", 0),
+            "speech_analytics": speech_analytics,
             "completed_at": now_iso(),
         }},
     )

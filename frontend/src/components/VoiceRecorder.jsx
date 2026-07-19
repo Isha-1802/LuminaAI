@@ -81,14 +81,14 @@ export default function VoiceRecorder({ onCommit, disabled = false, size = "md" 
         className={`relative ${S} rounded-full border transition-all duration-300 flex items-center justify-center ${
           recording
             ? "bg-[#5a1a24] border-[#5a1a24] text-[#f2ece0]"
-            : "border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0c0a09]"
+            : "border-[#c68b73] text-[#c68b73] hover:bg-[#c68b73] hover:text-[#0c0a09]"
         } disabled:opacity-40`}
         data-testid={recording ? "stop-recording-btn" : "start-recording-btn"}
       >
         {recording ? <Square size={16} fill="currentColor" /> : <Mic size={18} />}
         {recording && (
           <span
-            className="absolute inset-0 rounded-full border border-[#c9a96e]/40 pointer-events-none"
+            className="absolute inset-0 rounded-full border border-[#c68b73]/40 pointer-events-none"
             style={{ transform: `scale(${1 + level * 0.6})`, transition: "transform 100ms linear" }}
           />
         )}

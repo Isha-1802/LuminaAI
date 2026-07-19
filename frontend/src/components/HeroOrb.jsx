@@ -3,9 +3,9 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial, Sparkles, Environment } from "@react-three/drei";
 import * as THREE from "three";
 
-const CORE_COLOR = "#c9a96e";     // champagne gold
-const EMISSIVE = "#8a6a2c";        // warm brass
-const RING_GOLD = "#d4b896";
+const CORE_COLOR = "#c68b73";     // champagne gold
+const EMISSIVE = "#7a3d35";        // warm brass
+const RING_GOLD = "#d9a58f";
 const RING_IVORY = "#f2ece0";
 
 const Orb = () => {
@@ -33,7 +33,7 @@ const Orb = () => {
       {/* Soft halo */}
       <mesh scale={1.35}>
         <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial color="#3a2a14" transparent opacity={0.08} />
+        <meshBasicMaterial color="#3a201a" transparent opacity={0.08} />
       </mesh>
     </Float>
   );
@@ -65,13 +65,13 @@ export default function HeroOrb() {
       <Canvas dpr={[1, 1.6]} camera={{ position: [0, 0, 6.2], fov: 38 }}>
         <color attach="background" args={["#0c0a09"]} />
         <ambientLight intensity={0.28} />
-        <pointLight position={[5, 4, 6]} intensity={2.6} color="#e6c98a" />
-        <pointLight position={[-6, -2, 3]} intensity={1.4} color="#8c5a24" />
-        <pointLight position={[0, 6, -6]} intensity={0.9} color="#fff5e0" />
+        <pointLight position={[5, 4, 6]} intensity={2.6} color="#e8b8a4" />
+        <pointLight position={[-6, -2, 3]} intensity={1.4} color="#7a3d35" />
+        <pointLight position={[0, 6, -6]} intensity={0.9} color="#fdf0ea" />
         <Suspense fallback={null}>
           <Orb />
           <Rings />
-          <Sparkles count={120} size={2.4} scale={[10, 10, 10]} speed={0.25} color="#d4b896" />
+          <Sparkles count={120} size={2.4} scale={[10, 10, 10]} speed={0.25} color="#d9a58f" />
           <Sparkles count={40} size={1.1} scale={[16, 8, 16]} speed={0.15} color="#f2ece0" />
           <Environment preset="warehouse" />
         </Suspense>

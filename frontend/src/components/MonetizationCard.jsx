@@ -48,7 +48,7 @@ export default function MonetizationCard({ interviewer }) {
       {/* Header */}
       <div className="px-6 py-5 border-b border-[#f2ece0]/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <TrendingUp size={18} className="text-[#c9a96e]" />
+          <TrendingUp size={18} className="text-[#c68b73]" />
           <h3 className="font-display text-2xl tracking-tight">Monetization Status</h3>
         </div>
         <div
@@ -62,12 +62,12 @@ export default function MonetizationCard({ interviewer }) {
       <div className="p-6 space-y-6">
         {/* Current Tier */}
         {currentTier.is_monetized ? (
-          <div className="flex items-start gap-4 p-4 border border-[#c9a96e]/20 bg-[#c9a96e]/5">
-            <CheckCircle className="text-[#c9a96e] shrink-0 mt-0.5" size={18} />
+          <div className="flex items-start gap-4 p-4 border border-[#c68b73]/20 bg-[#c68b73]/5">
+            <CheckCircle className="text-[#c68b73] shrink-0 mt-0.5" size={18} />
             <div>
               <div className="text-sm font-medium text-[#f2ece0]">Account Monetized</div>
               <div className="text-xs text-[#a8a094] mt-0.5">
-                You earn <span className="text-[#c9a96e] font-bold">₹{currentTier.rate_inr.toLocaleString("en-IN")}</span> per completed interview session.
+                You earn <span className="text-[#c68b73] font-bold">₹{currentTier.rate_inr.toLocaleString("en-IN")}</span> per completed interview session.
               </div>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function MonetizationCard({ interviewer }) {
             { label: "Per Session", value: currentTier.is_monetized ? `₹${currentTier.rate_inr.toLocaleString("en-IN")}` : "Free" },
           ].map((s, i) => (
             <div key={s.label} className={`px-4 py-4 text-center ${i > 0 ? "border-l border-[#f2ece0]/[0.06]" : ""}`}>
-              <div className="font-display text-2xl" style={{ color: i === 2 && currentTier.is_monetized ? "#c9a96e" : "#f2ece0" }}>
+              <div className="font-display text-2xl" style={{ color: i === 2 && currentTier.is_monetized ? "#c68b73" : "#f2ece0" }}>
                 {s.value}
               </div>
               <div className="text-[10px] uppercase tracking-wider text-[#6b6459] mt-1">{s.label}</div>
@@ -106,7 +106,7 @@ export default function MonetizationCard({ interviewer }) {
               <div className="text-[11px] uppercase tracking-wider text-[#a8a094]">
                 Progress to {TIER_ICONS[nextTier.tier]} {nextTier.tier}
               </div>
-              <div className="text-[11px] text-[#c9a96e]">{progressPct}%</div>
+              <div className="text-[11px] text-[#c68b73]">{progressPct}%</div>
             </div>
             <div className="h-1.5 bg-[#f2ece0]/[0.06] rounded-full overflow-hidden">
               <motion.div
@@ -128,7 +128,7 @@ export default function MonetizationCard({ interviewer }) {
         )}
 
         {isElite && (
-          <div className="text-center py-2 text-sm text-[#c9a96e]">
+          <div className="text-center py-2 text-sm text-[#c68b73]">
             💎 Elite status — maximum earnings unlocked!
           </div>
         )}
@@ -144,19 +144,19 @@ export default function MonetizationCard({ interviewer }) {
                 <div
                   key={t.tier}
                   className={`flex items-center justify-between py-2 px-3 text-sm ${
-                    isCurrent ? "border border-[#c9a96e]/30 bg-[#c9a96e]/5" : "border border-transparent"
+                    isCurrent ? "border border-[#c68b73]/30 bg-[#c68b73]/5" : "border border-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-base">{TIER_ICONS[t.tier]}</span>
                     <span className={isUnlocked ? "text-[#f2ece0]" : "text-[#6b6459]"}>{t.tier}</span>
-                    {isCurrent && <span className="text-[9px] uppercase tracking-wider text-[#c9a96e] border border-[#c9a96e]/40 px-1.5 py-0.5">Current</span>}
+                    {isCurrent && <span className="text-[9px] uppercase tracking-wider text-[#c68b73] border border-[#c68b73]/40 px-1.5 py-0.5">Current</span>}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[11px]" style={{ color: isUnlocked ? t.color : "#3a3530" }}>
                       {t.is_monetized ? `₹${t.rate_inr.toLocaleString("en-IN")}/session` : "Free"}
                     </span>
-                    {isUnlocked && !isCurrent && <CheckCircle size={12} className="text-[#c9a96e]" />}
+                    {isUnlocked && !isCurrent && <CheckCircle size={12} className="text-[#c68b73]" />}
                     {!isUnlocked && <Lock size={12} className="text-[#3a3530]" />}
                   </div>
                 </div>

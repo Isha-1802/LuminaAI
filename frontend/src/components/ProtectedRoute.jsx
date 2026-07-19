@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0c0a09]" data-testid="auth-loading">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-6 h-6 border border-[#f2ece0]/10 border-t-[#c9a96e] rounded-full animate-spin" />
+          <div className="w-6 h-6 border border-[#f2ece0]/10 border-t-[#c68b73] rounded-full animate-spin" />
           <span className="overline">Reading your dossier</span>
         </div>
       </div>
