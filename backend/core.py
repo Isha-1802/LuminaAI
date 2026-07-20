@@ -107,6 +107,49 @@ ATELIERS = [
         "topics": ["multiplayer editing", "CRDTs", "vector rendering", "webgl", "performance"],
         "culture_notes": "Figma interviews go deep on collaboration internals, vector math, and performance. They reward candidates with an artist's eye and an engineer's rigor.",
     },
+    # --- Big tech: the companies most candidates actually prepare for ---
+    {
+        "id": "google", "name": "Google", "tagline": "Scale · Algorithms · Rigor",
+        "accent": "#4285F4", "difficulty": "hard",
+        "topics": ["data structures & algorithms", "big-O analysis", "distributed systems", "scalability", "clean coding"],
+        "culture_notes": "Google interviews are algorithm-heavy and rubric-driven. Interviewers probe optimal time/space complexity, edge cases, and clean, bug-free code. Explain your reasoning out loud and iterate from brute force to optimal.",
+    },
+    {
+        "id": "amazon", "name": "Amazon", "tagline": "Leadership Principles · Ownership · Bar Raiser",
+        "accent": "#FF9900", "difficulty": "hard",
+        "topics": ["Leadership Principles", "STAR behavioral stories", "system design", "data structures", "customer obsession"],
+        "culture_notes": "Amazon weights its 16 Leadership Principles as heavily as technical skill. Every behavioral answer should map to a principle (Ownership, Dive Deep, Bias for Action) in crisp STAR format with quantified impact.",
+    },
+    {
+        "id": "meta", "name": "Meta", "tagline": "Speed · Impact · Scale",
+        "accent": "#0866FF", "difficulty": "hard",
+        "topics": ["algorithms", "system design at scale", "product sense", "move fast", "impact"],
+        "culture_notes": "Meta interviews move fast and expect fast, correct code. Coding rounds want optimal solutions in ~20 minutes; system design probes billion-user scale. Behavioral rounds reward measurable impact and speed.",
+    },
+    {
+        "id": "microsoft", "name": "Microsoft", "tagline": "Craft · Collaboration · Growth",
+        "accent": "#00A4EF", "difficulty": "medium",
+        "topics": ["data structures", "problem solving", "OOP design", "collaboration", "growth mindset"],
+        "culture_notes": "Microsoft interviews balance solid CS fundamentals with collaboration and a growth mindset. Interviewers care how you think and take hints, not just whether you land the optimal answer immediately.",
+    },
+    {
+        "id": "apple", "name": "Apple", "tagline": "Detail · Craft · Secrecy",
+        "accent": "#a2aaad", "difficulty": "hard",
+        "topics": ["deep domain expertise", "attention to detail", "systems fundamentals", "quality", "user experience"],
+        "culture_notes": "Apple interviews go deep on your specific domain and obsess over detail and quality. Teams are specialized; expect pointed questions about how things really work under the hood, not surface-level breadth.",
+    },
+    {
+        "id": "netflix", "name": "Netflix", "tagline": "Freedom · Responsibility · Candor",
+        "accent": "#E50914", "difficulty": "hard",
+        "topics": ["senior-level system design", "judgment", "high-performance culture", "candor", "ownership"],
+        "culture_notes": "Netflix hires senior, high-judgment engineers and expects radical candor. Interviews probe autonomous decision-making and the ability to justify tradeoffs without hand-holding. Seniority bar is high.",
+    },
+    {
+        "id": "startup", "name": "Early-stage Startup", "tagline": "Generalist · Velocity · Grit",
+        "accent": "#c68b73", "difficulty": "medium",
+        "topics": ["full-stack breadth", "shipping fast", "wearing many hats", "pragmatism", "ownership"],
+        "culture_notes": "Early-stage startups want pragmatic generalists who ship. Interviews favor getting a working solution fast over theoretical perfection, plus signals that you'll own problems end to end without a spec.",
+    },
 ]
 
 # --- Mongo ---
@@ -275,6 +318,9 @@ class InterviewCreateInput(BaseModel):
     model_config = ConfigDict(extra="ignore")
     role_title: str = Field(min_length=1)
     interview_type: Literal["technical", "behavioral", "coding", "hr", "panel"] = "technical"
+    # Candidates may blend formats (e.g. technical + behavioural) in one sitting.
+    # interview_type stays the primary label for history and analytics.
+    interview_types: Optional[List[Literal["technical", "behavioral", "coding", "hr", "panel"]]] = None
     difficulty: Literal["easy", "medium", "hard"] = "medium"
     model_id: str = "llama-3.3-70b-versatile"
     resume_id: Optional[str] = None
@@ -493,14 +539,41 @@ def _atelier_notes(atelier_id: Optional[str]) -> str:
     )
 
 
+FORMAT_GUIDANCE = {
+    "technical": "systems design, architecture, and engineering tradeoffs",
+    "behavioral": "past experience, judgement and collaboration, answered STAR-style",
+    "coding": "algorithms, data structures, complexity and clean implementation",
+    "hr": "motivation, expectations, logistics and culture fit",
+    "panel": "a rotating multi-interviewer roundtable",
+}
+
+
+def _format_block(spec: dict) -> tuple:
+    """Return (label, extra_instruction) describing the requested interview format(s)."""
+    types = [t for t in (spec.get("interview_types") or []) if t in FORMAT_GUIDANCE]
+    if not types:
+        types = [spec.get("interview_type", "technical")]
+    if len(types) == 1:
+        return types[0], ""
+    label = " + ".join(types)
+    detail = "\n".join(f"  - {t}: {FORMAT_GUIDANCE[t]}" for t in types)
+    instruction = (
+        f"\nThis is a BLENDED interview covering several formats:\n{detail}\n"
+        "Distribute the questions across these formats as evenly as the total allows, "
+        "and switch format between questions rather than grouping them.\n"
+    )
+    return label, instruction
+
+
 def build_interview_system_prompt(spec: dict, resume_text: Optional[str]) -> str:
     resume_block = f"\n\nCANDIDATE RESUME:\n{resume_text}\n" if resume_text else ""
     atelier_block = _atelier_notes(spec.get("atelier_id"))
     custom = spec.get("custom_prompt") or ""
     custom_block = f"\n\nCUSTOM DIRECTIVES:\n{custom}\n" if custom else ""
-    return f"""You are Lumina, a world-class AI interview coach conducting a {spec['interview_type']} interview
+    format_label, blend_block = _format_block(spec)
+    return f"""You are Lumina, a world-class AI interview coach conducting a {format_label} interview
 for the role of "{spec['role_title']}" at {spec['difficulty']} difficulty.
-
+{blend_block}
 Rules:
 - Ask ONE question at a time.
 - Total questions: {spec['num_questions']}.

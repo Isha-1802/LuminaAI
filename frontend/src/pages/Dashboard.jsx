@@ -281,7 +281,7 @@ export default function Dashboard() {
 
         {/* Editorial parallax band — breaks the scroll and adds depth */}
         <div className="mt-16 rounded-2xl overflow-hidden border border-[#f2ece0]/[0.1]">
-          <ParallaxImage src={ARCHIVE_BG} height="h-[300px] md:h-[380px]" strength={22} opacity={0.4}>
+          <ParallaxImage src={ARCHIVE_BG} height="h-[300px] md:h-[380px]" strength={22} opacity={0.68}>
             <div className="h-full flex flex-col justify-center px-10 md:px-16">
               <ParallaxLayer strength={26}>
                 <div className="overline-gold mb-4">§ The Record</div>

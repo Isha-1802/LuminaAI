@@ -11,8 +11,9 @@ export function ParallaxImage({
   className = "",
   height = "h-[420px]",
   strength = 18,
-  opacity = 0.32,
-  overlay = "from-[#0c0a09] via-[#0c0a09]/55 to-[#0c0a09]",
+  opacity = 0.62,
+  // Lighter, side-weighted scrim: keeps text legible without smothering the photo
+  overlay = "from-[#0c0a09]/85 via-[#0c0a09]/30 to-[#0c0a09]/85",
 }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
@@ -22,11 +23,18 @@ export function ParallaxImage({
   return (
     <div ref={ref} className={`relative overflow-hidden ${height} ${className}`}>
       <motion.div
-        style={{ y, scale, backgroundImage: `url(${src})`, opacity }}
+        style={{
+          y,
+          scale,
+          backgroundImage: `url(${src})`,
+          opacity,
+          filter: "brightness(1.35) contrast(1.05)",
+        }}
         className="absolute inset-[-20%] bg-cover bg-center will-change-transform"
         aria-hidden="true"
       />
-      <div className={`absolute inset-0 bg-gradient-to-b ${overlay}`} aria-hidden="true" />
+      {/* Readability scrim behind the text only (left/right), not a full blackout */}
+      <div className={`absolute inset-0 bg-gradient-to-r ${overlay}`} aria-hidden="true" />
       {children && <div className="relative h-full">{children}</div>}
     </div>
   );

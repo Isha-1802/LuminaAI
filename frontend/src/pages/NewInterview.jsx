@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import AmbientBackground from "@/components/AmbientBackground";
 import Ripple from "@/components/Ripple";
 import MagneticButton from "@/components/MagneticButton";
-import { ArrowUpRight, Loader2, Plus, Trash2, Users } from "lucide-react";
+import { ArrowUpRight, Loader2, Plus, Trash2, Users, Check } from "lucide-react";
 import { toast } from "sonner";
 
 const INTERVIEW_TYPES = [
@@ -38,6 +38,7 @@ export default function NewInterview() {
   const [form, setForm] = useState({
     role_title: "",
     interview_type: "technical",
+    interview_types: ["technical"],
     difficulty: "medium",
     num_questions: 5,
     model_id: "gemini-3-flash-preview",
@@ -46,6 +47,22 @@ export default function NewInterview() {
     panel_config: DEFAULT_PANEL,
     kit_id: kitParam || null,
   });
+
+  // Panel restructures the whole session (3 rotating interviewers), so it can't
+  // be blended with the single-interviewer formats.
+  const toggleType = (id) => {
+    setForm((f) => {
+      let next;
+      if (id === "panel") {
+        next = f.interview_types.includes("panel") ? [] : ["panel"];
+      } else {
+        const base = f.interview_types.filter((t) => t !== "panel");
+        next = base.includes(id) ? base.filter((t) => t !== id) : [...base, id];
+      }
+      if (next.length === 0) next = [id === "panel" ? "technical" : id]; // never leave it empty
+      return { ...f, interview_types: next, interview_type: next[0] };
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -130,7 +147,7 @@ export default function NewInterview() {
             Compose the <span className="font-display-italic text-shimmer">room</span>.
           </h1>
           <p className="mt-6 text-[#a8a094] max-w-xl leading-relaxed">
-            Set the stage. Every choice — the role, the register, the AI counsel — shapes the rehearsal that follows.
+            Set the stage. Every choice — the role, the format, the AI interviewer — shapes the rehearsal that follows.
           </p>
         </motion.div>
 
@@ -138,9 +155,9 @@ export default function NewInterview() {
           {/* Role */}
           <div className="grid lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter I</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The role you're chasing</h2>
-              <p className="mt-3 text-sm text-[#a8a094]">Be specific.</p>
+              <div className="overline-gold mb-3">Step 1</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The Role</h2>
+              <p className="mt-3 text-sm text-[#a8a094]">Which job are you preparing for? Be specific.</p>
             </div>
             <div className="lg:col-span-8">
               <input type="text" placeholder="e.g. Senior Product Designer at Airbnb"
@@ -154,8 +171,8 @@ export default function NewInterview() {
           {/* Atelier picker */}
           <div className="grid lg:grid-cols-12 gap-8 items-start border-t border-[#f2ece0]/[0.06] pt-16">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter II</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The Atelier</h2>
+              <div className="overline-gold mb-3">Step 2</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Company Style</h2>
               <p className="mt-3 text-sm text-[#a8a094]">Optional — tune to a company's known interviewing style.</p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-0 border border-[#f2ece0]/[0.08]" data-testid="ateliers-grid">
@@ -186,30 +203,48 @@ export default function NewInterview() {
             </div>
           </div>
 
-          {/* Register */}
+          {/* Interview format — multi-select */}
           <div className="grid lg:grid-cols-12 gap-8 items-start border-t border-[#f2ece0]/[0.06] pt-16">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter III</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The register</h2>
-              <p className="mt-3 text-sm text-[#a8a094]">Which room?</p>
+              <div className="overline-gold mb-3">Step 3</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Interview Format</h2>
+              <p className="mt-3 text-sm text-[#a8a094]">
+                What kind of questions do you want? Pick one or more — your questions will be
+                split across everything you choose.
+              </p>
+              <p className="mt-3 overline text-[#c68b73]">
+                {form.interview_types.length} selected
+              </p>
             </div>
             <div className="lg:col-span-8 grid grid-cols-2 lg:grid-cols-3 gap-0 border border-[#f2ece0]/[0.08]">
-              {INTERVIEW_TYPES.map((t, i) => (
-                <button
-                  key={t.id}
-                  onClick={() => setForm({ ...form, interview_type: t.id })}
-                  className={`text-left p-6 md:p-8 relative transition-all duration-500 border-b border-[#f2ece0]/[0.08] ${
-                    ((i + 1) % 3 !== 0) ? "md:border-r" : ""
-                  } ${((i + 1) % 2 !== 0) ? "border-r" : ""} lg:border-r-0 ${
-                    form.interview_type === t.id ? "bg-[#f2ece0] text-[#0c0a09]" : "bg-transparent hover:bg-[#f2ece0]/[0.02] text-[#f2ece0]"
-                  }`}
-                  data-testid={`type-${t.id}`}
-                >
-                  <div className={`overline ${form.interview_type === t.id ? "text-[#0c0a09]/60" : "text-[#c68b73]"}`}>0{i + 1}</div>
-                  <div className="font-display text-2xl md:text-3xl tracking-tight mt-3">{t.label}</div>
-                  <div className={`text-xs mt-2 leading-relaxed ${form.interview_type === t.id ? "text-[#0c0a09]/70" : "text-[#a8a094]"}`}>{t.d}</div>
-                </button>
-              ))}
+              {INTERVIEW_TYPES.map((t, i) => {
+                const selected = form.interview_types.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => toggleType(t.id)}
+                    className={`text-left p-6 md:p-8 relative transition-all duration-500 border-b border-[#f2ece0]/[0.08] ${
+                      ((i + 1) % 3 !== 0) ? "md:border-r" : ""
+                    } ${((i + 1) % 2 !== 0) ? "border-r" : ""} lg:border-r-0 ${
+                      selected ? "bg-[#f2ece0] text-[#0c0a09]" : "bg-transparent hover:bg-[#f2ece0]/[0.02] text-[#f2ece0]"
+                    }`}
+                    data-testid={`type-${t.id}`}
+                    aria-pressed={selected}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`overline ${selected ? "text-[#0c0a09]/60" : "text-[#c68b73]"}`}>0{i + 1}</span>
+                      {selected && <Check size={15} className="text-[#0c0a09]" />}
+                    </div>
+                    <div className="font-display text-2xl md:text-3xl tracking-tight mt-3">{t.label}</div>
+                    <div className={`text-xs mt-2 leading-relaxed ${selected ? "text-[#0c0a09]/70" : "text-[#a8a094]"}`}>{t.d}</div>
+                    {t.id === "panel" && (
+                      <div className={`text-[10px] mt-2 ${selected ? "text-[#0c0a09]/60" : "text-[#6b6459]"}`}>
+                        Runs on its own — can't be mixed.
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -217,8 +252,8 @@ export default function NewInterview() {
           {form.interview_type === "panel" && (
             <div className="grid lg:grid-cols-12 gap-8 items-start border-t border-[#f2ece0]/[0.06] pt-16" data-testid="panel-config">
               <div className="lg:col-span-4">
-                <div className="overline-gold mb-3">Chapter III · b</div>
-                <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Compose the panel</h2>
+                <div className="overline-gold mb-3">Step 3 · panel setup</div>
+                <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Your Panel</h2>
                 <p className="mt-3 text-sm text-[#a8a094]">2–4 counsels. Each takes a rotating turn — like a real roundtable.</p>
               </div>
               <div className="lg:col-span-8 space-y-3">
@@ -251,8 +286,8 @@ export default function NewInterview() {
           {/* Difficulty */}
           <div className="grid lg:grid-cols-12 gap-8 items-center border-t border-[#f2ece0]/[0.06] pt-16">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter IV</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The temperature</h2>
+              <div className="overline-gold mb-3">Step 4</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Difficulty</h2>
             </div>
             <div className="lg:col-span-8 flex items-stretch border border-[#f2ece0]/[0.08]">
               {DIFFICULTIES.map((d, i) => (
@@ -270,8 +305,8 @@ export default function NewInterview() {
           {/* AI counsel */}
           <div className="grid lg:grid-cols-12 gap-8 items-start border-t border-[#f2ece0]/[0.06] pt-16">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter V</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Cast the counsel</h2>
+              <div className="overline-gold mb-3">Step 5</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">AI Model</h2>
               <p className="mt-3 text-sm text-[#a8a094]">Which intellect powers the rehearsal.</p>
             </div>
             <div className="lg:col-span-8 space-y-0 border border-[#f2ece0]/[0.08]">
@@ -300,8 +335,8 @@ export default function NewInterview() {
           {resumes.length > 0 && (
             <div className="grid lg:grid-cols-12 gap-8 items-start border-t border-[#f2ece0]/[0.06] pt-16">
               <div className="lg:col-span-4">
-                <div className="overline-gold mb-3">Chapter VI</div>
-                <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Anchor to a résumé</h2>
+                <div className="overline-gold mb-3">Step 6</div>
+                <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">Your Résumé</h2>
               </div>
               <div className="lg:col-span-8">
                 <select value={form.resume_id} onChange={(e) => setForm({ ...form, resume_id: e.target.value })}
@@ -317,8 +352,8 @@ export default function NewInterview() {
           {/* Length */}
           <div className="grid lg:grid-cols-12 gap-8 items-center border-t border-[#f2ece0]/[0.06] pt-16">
             <div className="lg:col-span-4">
-              <div className="overline-gold mb-3">Chapter VII</div>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">The length</h2>
+              <div className="overline-gold mb-3">Step 7</div>
+              <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-tight">How Many Questions</h2>
             </div>
             <div className="lg:col-span-8">
               <div className="flex items-baseline gap-6 mb-6">

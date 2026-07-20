@@ -256,7 +256,7 @@ export default function Landing() {
         src={BAND_ROOM}
         height="h-[340px] md:h-[460px]"
         strength={20}
-        opacity={0.38}
+        opacity={0.66}
         className="my-8"
       >
         <div className="h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-center">
@@ -485,7 +485,7 @@ export default function Landing() {
         src={BAND_FOCUS}
         height="h-[320px] md:h-[420px]"
         strength={16}
-        opacity={0.34}
+        opacity={0.62}
       >
         <div className="h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-center items-end text-right">
           <ParallaxLayer strength={24}>

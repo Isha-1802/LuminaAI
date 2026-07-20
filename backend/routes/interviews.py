@@ -78,6 +78,7 @@ async def create_interview(payload: InterviewCreateInput, user: dict = Depends(g
         "user_id": user["user_id"],
         "role_title": payload.role_title,
         "interview_type": payload.interview_type,
+        "interview_types": payload.interview_types or [payload.interview_type],
         "difficulty": payload.difficulty,
         "model_id": payload.model_id,
         "resume_id": payload.resume_id,
@@ -150,7 +151,9 @@ async def _reply_prompt(doc: dict, user_msg: dict, resume_text: Optional[str]):
     prompt = doc["system_prompt"] or build_interview_system_prompt(
         {
             "role_title": doc["role_title"], "difficulty": doc["difficulty"],
-            "interview_type": doc["interview_type"], "num_questions": doc["num_questions"],
+            "interview_type": doc["interview_type"],
+            "interview_types": doc.get("interview_types"),
+            "num_questions": doc["num_questions"],
             "atelier_id": doc.get("atelier_id"),
         },
         resume_text,
