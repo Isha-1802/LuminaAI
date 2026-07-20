@@ -9,7 +9,7 @@ from core import (
     db, find_user, get_current_user, hash_password, verify_password,
     create_jwt, now_iso, SESSION_EXP_DAYS,
     RegisterInput, LoginInput,
-    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL
+    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL, BACKEND_URL
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -66,8 +66,11 @@ async def google_login(request: Request):
     """Initiates the Google OAuth flow."""
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth not configured")
-    # Redirect URI must match what's in Google Cloud Console
-    redirect_uri = str(request.base_url).rstrip("/") + "/api/auth/google/callback"
+    # Redirect URI must EXACTLY match what's registered in Google Cloud Console.
+    # Prefer the explicit BACKEND_URL env var: behind Render/Vercel proxies
+    # request.base_url can report http:// instead of https://, which Google rejects.
+    base = BACKEND_URL or str(request.base_url).rstrip("/")
+    redirect_uri = f"{base}/api/auth/google/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 

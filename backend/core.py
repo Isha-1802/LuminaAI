@@ -31,6 +31,10 @@ APP_NAME = os.environ.get("APP_NAME", "lumina-interview")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3001")
+# Public origin of THIS backend (e.g. https://luminaai-1-xx6h.onrender.com).
+# Used to build the exact OAuth callback; behind a proxy request.base_url can
+# wrongly report http, which breaks Google's redirect_uri match.
+BACKEND_URL = os.environ.get("BACKEND_URL", "").rstrip("/")
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "./uploads"))
 
 JWT_ALG = "HS256"
