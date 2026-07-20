@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import AmbientBackground from "@/components/AmbientBackground";
 import TiltCard from "@/components/TiltCard";
@@ -75,7 +75,7 @@ export default function InterviewerBrowse() {
                     <div className="flex gap-4">
                       <div className="w-12 h-12 rounded-full overflow-hidden bg-[#1a1714] border border-[#c68b73]/30 flex-shrink-0 flex items-center justify-center">
                         {i.picture ? (
-                          <img src={i.picture.startsWith("http") ? i.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${i.picture}`} alt={i.name} className="w-full h-full object-cover" />
+                          <img src={mediaUrl(i.picture)} alt={i.name} className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-[#c68b73] font-display text-lg">{i.name?.charAt(0) || i.email?.charAt(0) || "?"}</span>
                         )}

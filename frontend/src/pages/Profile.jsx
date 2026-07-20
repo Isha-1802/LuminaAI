@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import AmbientBackground from "@/components/AmbientBackground";
@@ -166,7 +166,7 @@ export default function Profile() {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-[#1a1714] border border-[#c68b73]/30 flex items-center justify-center">
                     {user.picture ? (
-                      <img src={user.picture.startsWith("http") ? user.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${user.picture}`} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={mediaUrl(user.picture)} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[#c68b73] font-display text-2xl">{user.name?.charAt(0) || user.email?.charAt(0)}</span>
                     )}

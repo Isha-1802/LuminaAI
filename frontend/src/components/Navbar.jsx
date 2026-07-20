@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { mediaUrl } from "@/lib/api";
 import { LogOut, LayoutDashboard, Sparkles, User, Menu, X } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -80,7 +81,7 @@ export default function Navbar() {
               >
                 {user.picture ? (
                   <img 
-                    src={user.picture.startsWith("http") ? user.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${user.picture}`} 
+                    src={mediaUrl(user.picture)}
                     alt="Profile" 
                     className="w-5 h-5 rounded-full object-cover border border-[#c68b73]/30" 
                   />

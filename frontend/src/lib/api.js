@@ -1,7 +1,14 @@
 import axios from "axios";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Single source of truth for the backend origin. Falls back to localhost in dev
+// so a missing env var never produces an "undefined/api" URL.
+export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 export const API = `${BACKEND_URL}/api`;
+
+// Resolve a stored media path (e.g. "/uploads/..") to an absolute URL.
+// Absolute URLs (Google profile pictures) are returned unchanged.
+export const mediaUrl = (path) =>
+  !path ? "" : path.startsWith("http") ? path : `${BACKEND_URL}${path}`;
 
 const TOKEN_KEY = "lumina_token";
 

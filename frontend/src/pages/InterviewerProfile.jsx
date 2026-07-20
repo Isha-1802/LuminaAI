@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import AmbientBackground from "@/components/AmbientBackground";
 import { MapPin, Clock, Loader2, Calendar, Star } from "lucide-react";
@@ -79,7 +79,7 @@ export default function InterviewerProfile() {
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-[#1a1714] border border-[#c68b73]/30 flex-shrink-0 flex items-center justify-center">
                   {interviewer.picture ? (
-                    <img src={interviewer.picture.startsWith("http") ? interviewer.picture : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${interviewer.picture}`} alt={interviewer.name} className="w-full h-full object-cover" />
+                    <img src={mediaUrl(interviewer.picture)} alt={interviewer.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-[#c68b73] font-display text-4xl">{interviewer.name?.charAt(0) || interviewer.email?.charAt(0) || "?"}</span>
                   )}
