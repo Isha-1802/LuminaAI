@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import { toast } from "sonner";
 import { Loader2, Save, Check, Pencil, X } from "lucide-react";
 
@@ -86,12 +86,7 @@ export const ABOUT_PROMPTS = [
   { id: "fun_fact", emoji: "⚡", label: "Fun fact" },
 ];
 
-const pictureSrc = (user) =>
-  user.picture
-    ? user.picture.startsWith("http")
-      ? user.picture
-      : `${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}${user.picture}`
-    : null;
+const pictureSrc = (user) => mediaUrl(user.picture) || null;
 
 // README-style sentence prefixes for the profile view
 const ABOUT_SENTENCES = {
