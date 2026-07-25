@@ -33,11 +33,21 @@ It closes the loop most tools leave open: **interview → diagnosis → targeted
 
 ---
 
-## ✦ Screenshots
-
-> 📸 _Add your images to `docs/screenshots/` (see the guide there). They render automatically once committed._
+## ✦ Live Preview
 
 <div align="center">
+
+### 👉 **[Experience Lumina live → lumina-ai-virid-one.vercel.app](https://lumina-ai-virid-one.vercel.app)**
+
+_Sign up with any email, or explore the AI interview, coach, and dashboard in seconds._
+
+</div>
+
+<!--
+  📸 SCREENSHOTS — to add them, drop these files into docs/screenshots/ and then
+  uncomment the grid below:
+    landing.png · dashboard.png · interview.png · report.png · coach.png · profile.png
+  See docs/screenshots/README.md for step-by-step instructions.
 
 | Landing | Dashboard |
 |:---:|:---:|
@@ -50,8 +60,7 @@ It closes the loop most tools leave open: **interview → diagnosis → targeted
 | The Coach (AI Chat) | Candidate Profile |
 |:---:|:---:|
 | ![Coach](docs/screenshots/coach.png) | ![Profile](docs/screenshots/profile.png) |
-
-</div>
+-->
 
 ---
 
