@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 
 from core import (
     db, get_current_user, put_object, extract_resume_text, now_iso, APP_NAME,
-    llm_chat, safe_json,
+    llm_chat, safe_json, enforce_rate_limit,
 )
 
 router = APIRouter(prefix="/api/resumes", tags=["resumes"])
@@ -21,6 +21,7 @@ async def analyze_resume(resume_id: str, user: dict = Depends(get_current_user))
         raise HTTPException(status_code=404, detail="Resume not found")
     if doc.get("analysis"):
         return doc["analysis"]
+    await enforce_rate_limit(user["user_id"], "resume_analyze")
 
     text = (doc.get("extracted_text") or "").strip()
     if len(text) < 100:

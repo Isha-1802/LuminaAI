@@ -473,6 +473,41 @@ def extract_resume_text(filename: str, data: bytes) -> str:
 
 
 # =======================
+# Rate limiting (per user, per action, per UTC day)
+# =======================
+# Generous caps that protect the Groq quota from abuse/runaway loops without
+# getting in a real user's way. Backed by MongoDB so it survives restarts and
+# works across multiple instances.
+RATE_LIMITS = {
+    "interview_create": 25,     # new interviews started per day
+    "interview_message": 300,   # answers sent (interviews are multi-turn)
+    "audio_transcribe": 300,    # voice answers
+    "coach_message": 80,        # coach chat turns
+    "resume_analyze": 15,       # résumé reviews
+}
+
+
+async def enforce_rate_limit(user_id: str, action: str) -> None:
+    """Increment today's counter for (user, action) and 429 if over the cap."""
+    limit = RATE_LIMITS.get(action)
+    if not limit:
+        return
+    day = datetime.now(timezone.utc).date().isoformat()
+    key = {"user_id": user_id, "action": action, "date": day}
+    doc = await db.rate_limits.find_one_and_update(
+        key,
+        {"$inc": {"count": 1}, "$setOnInsert": {"created_at": now_iso()}},
+        upsert=True,
+        return_document=True,
+    )
+    if (doc or {}).get("count", 0) > limit:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily limit reached for this action ({limit}/day). Please try again tomorrow.",
+        )
+
+
+# =======================
 # Auth deps
 # =======================
 async def find_user(user_id: str) -> Optional[dict]:

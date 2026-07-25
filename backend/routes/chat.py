@@ -3,7 +3,7 @@ import uuid
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Body
 
-from core import db, get_current_user, strip_mongo, now_iso, llm_chat
+from core import db, get_current_user, strip_mongo, now_iso, llm_chat, enforce_rate_limit
 
 logger = logging.getLogger("lumina.chat")
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
@@ -63,6 +63,7 @@ async def coach_message(payload: dict = Body(...), user: dict = Depends(get_curr
     content = ((payload or {}).get("content") or "").strip()
     if not content:
         raise HTTPException(status_code=400, detail="Empty message")
+    await enforce_rate_limit(user["user_id"], "coach_message")
 
     chat_id = (payload or {}).get("chat_id")
     chat = None

@@ -14,7 +14,7 @@ from core import (
     put_object, get_object,
     openai_stt, openai_tts,
     render_report_pdf, AVAILABLE_MODELS, ATELIERS,
-    compute_speech_analytics,
+    compute_speech_analytics, enforce_rate_limit,
 )
 
 router = APIRouter(prefix="/api", tags=["interviews"])
@@ -46,6 +46,7 @@ async def _resume_text(user_id: str, resume_id: Optional[str]) -> Optional[str]:
 
 @router.post("/interviews")
 async def create_interview(payload: InterviewCreateInput, user: dict = Depends(get_current_user)):
+    await enforce_rate_limit(user["user_id"], "interview_create")
     interview_id = f"iv_{uuid.uuid4().hex[:12]}"
     resume_text = await _resume_text(user["user_id"], payload.resume_id)
 
@@ -168,6 +169,7 @@ async def send_message(interview_id: str, payload: MessageInput, user: dict = De
         raise HTTPException(status_code=404, detail="Interview not found")
     if doc.get("status") == "completed":
         raise HTTPException(status_code=400, detail="Interview already completed")
+    await enforce_rate_limit(user["user_id"], "interview_message")
 
     user_msg = {"role": "user", "content": payload.content, "ts": now_iso()}
     resume_text = await _resume_text(user["user_id"], doc.get("resume_id"))
@@ -193,6 +195,7 @@ async def stream_message(interview_id: str, content: str = Query(..., min_length
         raise HTTPException(status_code=404, detail="Interview not found")
     if doc.get("status") == "completed":
         raise HTTPException(status_code=400, detail="Interview already completed")
+    await enforce_rate_limit(user["user_id"], "interview_message")
 
     user_msg = {"role": "user", "content": content, "ts": now_iso()}
     resume_text = await _resume_text(user["user_id"], doc.get("resume_id"))
@@ -231,6 +234,7 @@ async def transcribe_and_reply(interview_id: str, file: UploadFile = File(...), 
     doc = await db.interviews.find_one({"interview_id": interview_id, "user_id": user["user_id"]})
     if not doc:
         raise HTTPException(status_code=404, detail="Interview not found")
+    await enforce_rate_limit(user["user_id"], "audio_transcribe")
     data = await file.read()
     if not data:
         raise HTTPException(status_code=400, detail="Empty audio")
