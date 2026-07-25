@@ -40,7 +40,9 @@ export default function InterviewReport() {
         try {
           const resp = await api.get(`/interviews/${id}/recording`, { responseType: "blob" });
           setVideoUrl(URL.createObjectURL(resp.data));
-        } catch {}
+        } catch (e) {
+          console.warn("Recording unavailable (may have expired on the server):", e);
+        }
       }
     } catch {
       nav("/dashboard");
@@ -120,7 +122,9 @@ export default function InterviewReport() {
       await api.delete(`/interviews/${id}/share`);
       setShareToken(null);
       toast.success("Share revoked");
-    } catch {}
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Couldn't revoke the share link — try again.");
+    }
   };
   const copyShare = async () => {
     if (!shareToken) return;

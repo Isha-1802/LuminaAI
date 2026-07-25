@@ -85,9 +85,13 @@ export default function NewInterview() {
               kit_id: kit.kit_id,
             }));
             toast.success(`Kit "${kit.name}" loaded`);
-          } catch {}
+          } catch {
+            toast.error("Couldn't load that kit — starting from a blank setup.");
+          }
         }
-      } catch {}
+      } catch (e) {
+        console.error("Interview setup load failed:", e);
+      }
     })();
     // eslint-disable-next-line
   }, []);

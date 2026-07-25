@@ -179,7 +179,9 @@ export default function Interview() {
       fd.append("speaking_pct", payload.speakingPct);
       fd.append("duration_seconds", payload.duration);
       await api.post(`/interviews/${id}/recording`, fd, { headers: { "Content-Type": "multipart/form-data" } });
-    } catch {}
+    } catch (e) {
+      console.warn("Recording upload failed (non-blocking):", e);
+    }
   };
 
   const finish = async () => {
