@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from core import (
     db, get_current_user, now_iso, APP_NAME,
-    InterviewCreateInput, MessageInput,
+    InterviewCreateInput, MessageInput, RewindInput,
     build_interview_system_prompt, build_panel_counsel_prompt,
     llm_chat, llm_stream, safe_json,
     put_object, get_object,
@@ -384,6 +384,86 @@ async def _generate_feedback(interview_id: str, user: dict):
 @router.post("/interviews/{interview_id}/finish")
 async def finish_interview(interview_id: str, user: dict = Depends(get_current_user)):
     return {"feedback": await _generate_feedback(interview_id, user)}
+
+
+# ---------------------------------------------------------------------------
+# The Rewind — re-answer a single flagged question and see the score delta
+# ---------------------------------------------------------------------------
+def _qa_pairs(messages: list) -> list:
+    """Return [(question_text, original_answer_text), ...] in question order."""
+    questions = [m["content"] for m in messages if m.get("role") == "assistant"]
+    answers = [m["content"] for m in messages if m.get("role") == "user"]
+    return [(q, answers[i] if i < len(answers) else "") for i, q in enumerate(questions)]
+
+
+@router.post("/interviews/{interview_id}/rewind/{q_index}")
+async def rewind_question(
+    interview_id: str, q_index: int, payload: RewindInput,
+    user: dict = Depends(get_current_user),
+):
+    """Score a fresh answer to one past question against the original, on one rubric."""
+    await enforce_rate_limit(user["user_id"], "interview_message")
+
+    doc = await db.interviews.find_one({"interview_id": interview_id, "user_id": user["user_id"]})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    qa = (doc.get("feedback") or {}).get("question_analysis") or []
+    if q_index < 0 or q_index >= len(qa):
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    pairs = _qa_pairs(doc.get("messages") or [])
+    question = qa[q_index].get("question") or (pairs[q_index][0] if q_index < len(pairs) else "")
+    original_answer = pairs[q_index][1] if q_index < len(pairs) else ""
+    new_answer = payload.answer.strip()
+
+    # Score BOTH answers in one call so the comparison is fair and consistent
+    eval_prompt = (
+        "Score two answers to the SAME interview question on one identical 0-100 rubric "
+        "(clarity, correctness, depth, structure). Be a fair but demanding interviewer. "
+        "Produce STRICT JSON exactly:\n"
+        '{"original_score": <int 0-100>, "new_score": <int 0-100>, '
+        '"new_verdict": "strong" | "adequate" | "struggled", '
+        '"feedback": "<2 sentences: what the new answer improved vs the first, and the next thing to sharpen>"}\n\n'
+        f"ROLE: {doc.get('role_title')} | TYPE: {doc.get('interview_type')} | DIFFICULTY: {doc.get('difficulty')}\n\n"
+        f"QUESTION: {question}\n\n"
+        f"ORIGINAL ANSWER: {original_answer or '(no answer was given)'}\n\n"
+        f"NEW ANSWER: {new_answer}\n\nReturn ONLY valid JSON."
+    )
+    raw = await llm_chat(
+        doc.get("model_id", "llama-3.3-70b-versatile"),
+        f"{interview_id}-rewind-{q_index}",
+        "You output strict JSON only. Never include prose outside JSON.",
+        eval_prompt,
+    )
+    result = safe_json(raw) or {}
+    new_score = int(result.get("new_score", 0) or 0)
+    fresh_original = int(result.get("original_score", 0) or 0)
+
+    # Baseline stays fixed after the first rewind so the delta is stable
+    stored_original = qa[q_index].get("original_score")
+    original_score = stored_original if stored_original is not None else fresh_original
+
+    attempt = {
+        "answer": new_answer,
+        "score": new_score,
+        "verdict": result.get("new_verdict"),
+        "feedback": result.get("feedback"),
+        "created_at": now_iso(),
+    }
+    update = {"$push": {f"feedback.question_analysis.{q_index}.rewinds": attempt}}
+    if stored_original is None:
+        update["$set"] = {f"feedback.question_analysis.{q_index}.original_score": original_score}
+    await db.interviews.update_one({"interview_id": interview_id}, update)
+
+    return {
+        "q_index": q_index,
+        "question": question,
+        "original_score": original_score,
+        "new_score": new_score,
+        "delta": new_score - original_score,
+        "verdict": result.get("new_verdict"),
+        "feedback": result.get("feedback"),
+    }
 
 
 @router.get("/interviews/{interview_id}/report/pdf")

@@ -9,6 +9,7 @@ import InterviewHeatmap from "@/components/InterviewHeatmap";
 import SpeechAnalyticsPanel from "@/components/SpeechAnalyticsPanel";
 import AmbientBackground from "@/components/AmbientBackground";
 import { AuroraField } from "@/components/Parallax";
+import RewindQuestion from "@/components/RewindQuestion";
 
 const REPORT_BG = "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhcmslMjBnbGFzcyUyMHRleHR1cmV8ZW58MHx8fHwxNzgzMTg0OTI4fDA&ixlib=rb-4.1.0&q=85";
 
@@ -283,6 +284,14 @@ export default function InterviewReport() {
                     <div className="min-w-0 flex-1">
                       <p className="text-[#f2ece0] leading-relaxed">{q.question}</p>
                       <p className="text-sm text-[#a8a094] mt-2 leading-relaxed">{q.note}</p>
+                      {q.verdict !== "strong" && (
+                        <RewindQuestion
+                          interviewId={id}
+                          qIndex={i}
+                          initialRewinds={q.rewinds || []}
+                          originalScore={q.original_score}
+                        />
+                      )}
                     </div>
                     <span className={`shrink-0 text-[9px] uppercase tracking-[0.32em] px-3 py-1.5 border ${verdictStyle}`}>
                       {q.verdict}
