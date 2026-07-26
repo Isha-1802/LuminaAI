@@ -15,7 +15,10 @@ const INTERVIEW_TYPES = [
   { id: "coding", label: "Coding", d: "Algorithms, complexity, elegance." },
   { id: "hr", label: "Screening", d: "Motivation, comp, logistics." },
   { id: "panel", label: "Panel", d: "3-person roundtable · rotating counsels." },
+  { id: "negotiation", label: "Negotiation Room", d: "Negotiate a real lowball offer with an AI recruiter." },
 ];
+// Types that run standalone and can't be blended with Q&A formats.
+const EXCLUSIVE_TYPES = ["panel", "negotiation"];
 const DIFFICULTIES = [
   { id: "easy", label: "Warm-up" },
   { id: "medium", label: "Standard" },
@@ -53,13 +56,14 @@ export default function NewInterview() {
   const toggleType = (id) => {
     setForm((f) => {
       let next;
-      if (id === "panel") {
-        next = f.interview_types.includes("panel") ? [] : ["panel"];
+      if (EXCLUSIVE_TYPES.includes(id)) {
+        // Standalone types (panel, negotiation) can't blend — toggle solo.
+        next = f.interview_types.includes(id) ? [] : [id];
       } else {
-        const base = f.interview_types.filter((t) => t !== "panel");
+        const base = f.interview_types.filter((t) => !EXCLUSIVE_TYPES.includes(t));
         next = base.includes(id) ? base.filter((t) => t !== id) : [...base, id];
       }
-      if (next.length === 0) next = [id === "panel" ? "technical" : id]; // never leave it empty
+      if (next.length === 0) next = [EXCLUSIVE_TYPES.includes(id) ? "technical" : id]; // never empty
       return { ...f, interview_types: next, interview_type: next[0] };
     });
   };

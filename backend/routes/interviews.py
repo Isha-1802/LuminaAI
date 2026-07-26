@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from core import (
     db, get_current_user, now_iso, APP_NAME,
     InterviewCreateInput, MessageInput, RewindInput,
-    build_interview_system_prompt, build_panel_counsel_prompt,
+    build_interview_system_prompt, build_panel_counsel_prompt, build_negotiation_system_prompt,
     llm_chat, llm_stream, safe_json,
     put_object, get_object,
     openai_stt, openai_tts,
@@ -69,6 +69,10 @@ async def create_interview(payload: InterviewCreateInput, user: dict = Depends(g
         )
         first_msg = {"role": "assistant", "counsel_name": counsel["name"], "counsel_role": counsel["role"], "content": first_ai, "ts": now_iso()}
         system_prompt = None  # per-turn dynamic prompts for panel mode
+    elif payload.interview_type == "negotiation":
+        system_prompt = build_negotiation_system_prompt(spec, resume_text)
+        first_ai = await llm_chat(payload.model_id, interview_id, system_prompt, "Make your opening offer now.")
+        first_msg = {"role": "assistant", "content": first_ai, "ts": now_iso()}
     else:
         system_prompt = build_interview_system_prompt(spec, resume_text)
         first_ai = await llm_chat(payload.model_id, interview_id, system_prompt, "Begin the interview now.")
@@ -159,7 +163,8 @@ async def _reply_prompt(doc: dict, user_msg: dict, resume_text: Optional[str]):
         },
         resume_text,
     )
-    return prompt, f"Conversation so far:\n\n{convo}\n\nInterviewer:", {}
+    cue = "As Morgan the recruiter, respond to their last message" if doc.get("interview_type") == "negotiation" else "Interviewer:"
+    return prompt, f"Conversation so far:\n\n{convo}\n\n{cue}", {}
 
 
 @router.post("/interviews/{interview_id}/message")
@@ -327,8 +332,17 @@ async def _generate_feedback(interview_id: str, user: dict):
     doc = await db.interviews.find_one({"interview_id": interview_id, "user_id": user["user_id"]})
     if not doc:
         raise HTTPException(status_code=404, detail="Interview not found")
+    is_negotiation = doc.get("interview_type") == "negotiation"
     transcript = "\n".join(
-        f"{m.get('counsel_name','Interviewer') if m['role']=='assistant' else 'Candidate'}: {m['content']}" for m in doc["messages"]
+        f"{('Recruiter' if is_negotiation else m.get('counsel_name','Interviewer')) if m['role']=='assistant' else 'Candidate'}: {m['content']}"
+        for m in doc["messages"]
+    )
+    negotiation_lens = (
+        "\nThis was a SALARY NEGOTIATION role-play (the 'interviewer' was a recruiter). "
+        "Judge the candidate on negotiation skill: anchoring, justifying their ask with evidence, "
+        "handling pushback and pressure, trading terms, and closing. In question_analysis, treat each "
+        "recruiter message as the 'question' and assess how well the candidate responded to that move.\n"
+        if is_negotiation else ""
     )
     fb_prompt = (
         "You are Lumina's evaluation engine. Analyze the transcript and produce STRICT JSON matching this schema exactly:\n"
@@ -346,7 +360,8 @@ async def _generate_feedback(interview_id: str, user: dict):
         "}\n\n"
         "question_analysis must cover every question the interviewer asked, in order.\n"
         "The heatmap axes are independent of scores: judge leadership from ownership/initiative in answers, "
-        "and system_design from architecture/tradeoff reasoning (score low-but-fair if the interview type never touched that axis).\n\n"
+        "and system_design from architecture/tradeoff reasoning (score low-but-fair if the interview type never touched that axis).\n"
+        f"{negotiation_lens}\n"
         f"Role: {doc['role_title']} | Type: {doc['interview_type']} | Difficulty: {doc['difficulty']}\n\n"
         f"TRANSCRIPT:\n{transcript}\n\nReturn ONLY valid JSON."
     )

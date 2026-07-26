@@ -321,10 +321,10 @@ class CounselPersona(BaseModel):
 class InterviewCreateInput(BaseModel):
     model_config = ConfigDict(extra="ignore")
     role_title: str = Field(min_length=1)
-    interview_type: Literal["technical", "behavioral", "coding", "hr", "panel"] = "technical"
+    interview_type: Literal["technical", "behavioral", "coding", "hr", "panel", "negotiation"] = "technical"
     # Candidates may blend formats (e.g. technical + behavioural) in one sitting.
     # interview_type stays the primary label for history and analytics.
-    interview_types: Optional[List[Literal["technical", "behavioral", "coding", "hr", "panel"]]] = None
+    interview_types: Optional[List[Literal["technical", "behavioral", "coding", "hr", "panel", "negotiation"]]] = None
     difficulty: Literal["easy", "medium", "hard"] = "medium"
     model_id: str = "llama-3.3-70b-versatile"
     resume_id: Optional[str] = None
@@ -588,6 +588,7 @@ FORMAT_GUIDANCE = {
     "coding": "algorithms, data structures, complexity and clean implementation",
     "hr": "motivation, expectations, logistics and culture fit",
     "panel": "a rotating multi-interviewer roundtable",
+    "negotiation": "a live salary/offer negotiation role-play",
 }
 
 
@@ -627,6 +628,37 @@ Rules:
   "[INTERVIEW_COMPLETE]" on its own line, then a one-sentence sign-off.
 {atelier_block}{custom_block}{resume_block}
 Begin by greeting the candidate briefly in ONE line, then ask question 1."""
+
+
+def build_negotiation_system_prompt(spec: dict, resume_text: Optional[str]) -> str:
+    """The Negotiation Room — the AI plays a realistic recruiter extending a lowball offer."""
+    resume_block = f"\n\nCANDIDATE BACKGROUND (use it to justify or resist compensation):\n{resume_text}\n" if resume_text else ""
+    atelier_block = _atelier_notes(spec.get("atelier_id"))
+    # Difficulty controls how hard the recruiter pushes back.
+    stance = {
+        "easy": "You have some flexibility and will concede reasonably when the candidate makes a fair case.",
+        "medium": "You have a real budget ceiling. Push back at least twice before giving meaningful ground.",
+        "hard": "Budget is tight and you anchor low. Use pressure tactics (exploding offers, 'this is final', comparisons) and only concede for a genuinely strong, specific case.",
+    }.get(spec.get("difficulty", "medium"))
+    total = spec.get("num_questions", 5)
+    return f"""You are Morgan, a seasoned recruiter/hiring manager at a company that just decided to hire this
+candidate for the role of "{spec['role_title']}". You are role-playing a real COMPENSATION NEGOTIATION.
+
+Your goal: close the deal while protecting the company's budget. {stance}
+
+How to run it:
+- Open by congratulating them, then extend a concrete but deliberately LOW offer with real numbers
+  (base salary, and where relevant equity, signing bonus, and one perk). Use realistic figures for the role.
+- Then negotiate turn by turn. React to what they actually say. If they name a number, respond to it.
+- Use authentic recruiter moves: anchoring, "that's above our band," trading non-cash perks for base,
+  asking "what are you looking for?", probing competing offers, and testing their conviction.
+- Stay in character as Morgan at all times. One message per turn. Never coach or break the fourth wall.
+- Keep each message conversational and human — 2-5 sentences, not a lecture.
+- This negotiation runs about {total} exchanges. When you reach a final decision (deal closed at some number,
+  or a firm impasse), respond with EXACTLY the token "[INTERVIEW_COMPLETE]" on its own line, then a one-sentence
+  wrap-up of where you landed.
+{atelier_block}{resume_block}
+Begin now: congratulate them in ONE line and make your opening offer."""
 
 
 def build_panel_counsel_prompt(spec: dict, counsel: dict, panel: list, q_index: int, total: int, resume_text: Optional[str]) -> str:
