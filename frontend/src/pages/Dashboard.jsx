@@ -11,6 +11,7 @@ import PracticeCalendar from "@/components/PracticeCalendar";
 import CountUp from "@/components/CountUp";
 import ResumeVerdict from "@/components/ResumeVerdict";
 import DailyQuestion from "@/components/DailyQuestion";
+import OnboardingModal from "@/components/OnboardingModal";
 import { AuroraField, ParallaxImage, ParallaxLayer } from "@/components/Parallax";
 import Ripple from "@/components/Ripple";
 import MagneticButton from "@/components/MagneticButton";
@@ -116,6 +117,7 @@ export default function Dashboard() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="min-h-screen text-[#f2ece0]" data-testid="dashboard-page">
+      <OnboardingModal user={user} />
       <Navbar />
       <AuroraField variant="default" />
 
