@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import "@/App.css";
 
 import Landing from "@/pages/Landing";
+import NotFound from "@/pages/NotFound";
 import AuthPage from "@/pages/Auth";
 import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
@@ -124,7 +125,7 @@ function AppRouter() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Landing />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
