@@ -1,9 +1,67 @@
 """Stats routes."""
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends
-from core import db, get_current_user
+from core import (
+    db, get_current_user, require_interviewer,
+    compute_monetization_tier, MONETIZATION_TIERS,
+)
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
+
+
+@router.get("/interviewer")
+async def interviewer_stats(user: dict = Depends(require_interviewer)):
+    """Dashboard metrics for an interviewer: sessions, rating, earnings, tier, reviews."""
+    uid = user["user_id"]
+
+    bookings = await db.bookings.find(
+        {"interviewer_id": uid},
+        {"_id": 0, "status": 1, "start_time": 1, "candidate_name": 1, "updated_at": 1},
+    ).to_list(1000)
+    completed = [b for b in bookings if b.get("status") == "completed"]
+    upcoming = [b for b in bookings if b.get("status") == "scheduled"]
+
+    reviews = await db.reviews.find(
+        {"interviewer_id": uid},
+        {"_id": 0, "rating": 1, "comment": 1, "candidate_name": 1, "created_at": 1},
+    ).sort("created_at", -1).to_list(500)
+
+    ratings = [r["rating"] for r in reviews if isinstance(r.get("rating"), (int, float))]
+    avg_rating = round(sum(ratings) / len(ratings), 2) if ratings else 0
+    breakdown = {star: sum(1 for r in ratings if r == star) for star in range(1, 6)}
+
+    tier = compute_monetization_tier(len(completed), avg_rating)
+    rate = tier["rate_inr"]
+    earnings = len(completed) * rate  # platform pays the tier rate per completed interview
+
+    # Progress toward the next tier
+    idx = next((i for i, t in enumerate(MONETIZATION_TIERS) if t["tier"] == tier["tier"]), 0)
+    next_tier = MONETIZATION_TIERS[idx + 1] if idx + 1 < len(MONETIZATION_TIERS) else None
+    to_next = None
+    if next_tier:
+        to_next = {
+            "tier": next_tier["tier"],
+            "interviews_needed": max(0, next_tier["min_interviews"] - len(completed)),
+            "rating_needed": next_tier["min_rating"],
+            "rate_inr": next_tier["rate_inr"],
+        }
+
+    return {
+        "completed": len(completed),
+        "upcoming": len(upcoming),
+        "total_bookings": len(bookings),
+        "avg_rating": avg_rating,
+        "review_count": len(reviews),
+        "rating_breakdown": breakdown,
+        "is_available": bool(user.get("is_available")),
+        "tier": {
+            "name": tier["tier"], "rate_inr": rate, "is_monetized": tier["is_monetized"],
+            "color": tier["color"], "description": tier["description"],
+        },
+        "estimated_earnings_inr": earnings,
+        "next_tier": to_next,
+        "recent_reviews": reviews[:5],
+    }
 
 HEATMAP_AXES = ["communication", "problem_solving", "technical_depth", "confidence", "leadership", "system_design"]
 WEAK_THRESHOLD = 60
