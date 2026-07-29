@@ -3,8 +3,16 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
-from core import db, get_current_user, BookingInput, strip_mongo, now_iso, compute_monetization_tier
+from core import db, get_current_user, BookingInput, strip_mongo, now_iso, compute_monetization_tier, send_email
 from routes.notifications import create_notification
+
+
+def _fmt_when(iso: str) -> str:
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(iso.replace("Z", "+00:00")).strftime("%b %d, %Y at %H:%M UTC")
+    except Exception:
+        return iso[:16]
 
 logger = logging.getLogger("lumina.bookings")
 router = APIRouter(prefix="/api/bookings", tags=["Bookings"])
@@ -101,7 +109,20 @@ async def create_booking(booking_data: BookingInput, user: dict = Depends(get_cu
         body=f"{user.get('name')} has booked a session with you on {booking_data.start_time[:10]}.",
         link=f"/booking/{booking_id}"
     )
-    
+
+    # Email both parties
+    when = _fmt_when(booking_data.start_time)
+    await send_email(
+        interviewer.get("email"), "New interview booked on Lumina", "You have a new booking",
+        f"<b>{user.get('name')}</b> booked a mock interview with you.<br><br>"
+        f"<b>When:</b> {when}<br><b>Join link:</b> <a href='{meet_link}' style='color:#c68b73;'>{meet_link}</a>",
+    )
+    await send_email(
+        user.get("email"), "Your interview is booked", "Booking confirmed",
+        f"Your session with <b>{interviewer.get('name')}</b> is confirmed.<br><br>"
+        f"<b>When:</b> {when}<br><b>Join link:</b> <a href='{meet_link}' style='color:#c68b73;'>{meet_link}</a>",
+    )
+
     return strip_mongo(new_booking)
 
 
@@ -125,7 +146,17 @@ async def cancel_booking(booking_id: str, user: dict = Depends(get_current_user)
         {"user_id": booking["interviewer_id"]},
         {"$addToSet": {"available_slots": booking["start_time"]}}
     )
-    
+
+    # Email the OTHER party that it was cancelled
+    canceller_id = user["user_id"]
+    other_id = booking["interviewer_id"] if canceller_id == booking["candidate_id"] else booking["candidate_id"]
+    other = await db.users.find_one({"user_id": other_id}, {"_id": 0, "email": 1})
+    await send_email(
+        (other or {}).get("email"), "A Lumina interview was cancelled", "Booking cancelled",
+        f"Your session scheduled for <b>{_fmt_when(booking['start_time'])}</b> was cancelled by "
+        f"<b>{user.get('name')}</b>. The time slot has been reopened.",
+    )
+
     return {"status": "cancelled"}
 
 
@@ -169,5 +200,12 @@ async def complete_booking(booking_id: str, user: dict = Depends(get_current_use
         body=f"Your session with {user.get('name')} has been marked as completed. Leave a review!",
         link=f"/booking/{booking_id}"
     )
-    
+
+    candidate = await db.users.find_one({"user_id": booking["candidate_id"]}, {"_id": 0, "email": 1})
+    await send_email(
+        (candidate or {}).get("email"), "Your Lumina interview is complete", "Session complete",
+        f"Your interview with <b>{user.get('name')}</b> is done. "
+        f"Leave a review to help them — and the community.",
+    )
+
     return {"status": "completed", "tier": tier_info}

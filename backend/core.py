@@ -8,7 +8,10 @@ import json
 import uuid
 import bcrypt
 import jwt
+import asyncio
+import smtplib
 import logging
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Optional, Literal, List
 from datetime import datetime, timezone, timedelta
@@ -509,6 +512,69 @@ async def enforce_rate_limit(user_id: str, action: str) -> None:
             status_code=429,
             detail=f"Daily limit reached for this action ({limit}/day). Please try again tomorrow.",
         )
+
+
+# =======================
+# Email notifications (SMTP — optional, no-ops gracefully if unset)
+# =======================
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", "") or SMTP_USER
+EMAIL_ENABLED = bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD)
+
+
+def _email_shell(heading: str, body_html: str) -> str:
+    """Wrap content in Lumina's branded dark email template."""
+    cta = f'{FRONTEND_URL.rstrip("/")}'
+    return f"""\
+<div style="background:#0c0a09;padding:40px 0;font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:520px;margin:0 auto;background:#12100e;border:1px solid rgba(242,236,224,0.12);border-radius:16px;overflow:hidden;">
+    <div style="padding:28px 32px;border-bottom:1px solid rgba(242,236,224,0.08);">
+      <span style="color:#c68b73;font-style:italic;font-size:22px;">Lumina</span>
+      <span style="color:#6b6459;font-size:10px;letter-spacing:2px;text-transform:uppercase;"> &nbsp;Nº 01</span>
+    </div>
+    <div style="padding:32px;">
+      <h1 style="color:#f2ece0;font-size:24px;margin:0 0 16px;font-weight:normal;">{heading}</h1>
+      <div style="color:#a8a094;font-size:15px;line-height:1.6;font-family:Helvetica,Arial,sans-serif;">{body_html}</div>
+      <a href="{cta}" style="display:inline-block;margin-top:28px;color:#0c0a09;background:#c68b73;text-decoration:none;padding:12px 26px;font-family:Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:2px;">Open Lumina</a>
+    </div>
+    <div style="padding:20px 32px;border-top:1px solid rgba(242,236,224,0.08);color:#6b6459;font-size:11px;font-family:Helvetica,Arial,sans-serif;">
+      You're receiving this because you have a Lumina account.
+    </div>
+  </div>
+</div>"""
+
+
+def _send_smtp_blocking(to: str, subject: str, html: str) -> None:
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = f"Lumina <{SMTP_FROM}>"
+    msg["To"] = to
+    msg.set_content("This message requires an HTML-capable email client.")
+    msg.add_alternative(html, subtype="html")
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+        s.starttls()
+        s.login(SMTP_USER, SMTP_PASSWORD)
+        s.send_message(msg)
+
+
+async def send_email(to: Optional[str], subject: str, heading: str, body_html: str) -> bool:
+    """Send a branded email. No-ops (logs) when SMTP isn't configured, so callers never break."""
+    if not to:
+        return False
+    if not EMAIL_ENABLED:
+        logger.info(f"[email skipped — SMTP not configured] '{subject}' -> {to}")
+        return False
+    try:
+        html = _email_shell(heading, body_html)
+        await asyncio.get_event_loop().run_in_executor(None, _send_smtp_blocking, to, subject, html)
+        logger.info(f"[email sent] '{subject}' -> {to}")
+        return True
+    except Exception as e:
+        logger.warning(f"[email failed] '{subject}' -> {to}: {e}")
+        return False
 
 
 # =======================
